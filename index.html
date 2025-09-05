@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fiche véhicule Instagram – AD</title>
   <style>
-    :root{ --bg:#ffffff; --fg:#111827; --sub:#6b7280; --primary:#E30613; }
+    :root{ --bg:#ffffff; --fg:#111827; --sub:#6b7280; --accent:#E30613; --blue:#073B4C; --pink:#E3006D; }
     *{box-sizing:border-box}
-    body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,system-ui; color:var(--fg); background:var(--bg)}
-    .wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:400px 1fr;gap:24px}
-    @media(max-width:980px){.wrap{grid-template-columns:1fr}}
+    body{margin:0;font:16px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, system-ui; color:var(--fg); background:var(--bg)}
+    .wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:410px 1fr;gap:24px}
+    @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
     h1{margin:0 0 12px;font-size:24px}
     section{border:1px solid #e5e7eb;border-radius:16px;padding:16px;background:#fff}
     label.txt{display:block;font-size:13px;margin-bottom:8px;color:var(--sub)}
@@ -20,7 +20,7 @@
     .uploader{display:inline-block}
     .uploader input{display:none}
     .small{color:var(--sub);font-size:12px}
-    .actions{display:flex;gap:8px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
     canvas{background:#fff;border:1px solid #e5e7eb;border-radius:12px;max-width:100%}
   </style>
 </head>
@@ -30,7 +30,7 @@
       <h1>Fiche véhicule Instagram</h1>
 
       <section>
-        <div class="actions" style="gap:8px;flex-wrap:wrap">
+        <div class="actions">
           <label class="uploader btn">Prendre une photo (iPhone)
             <input id="photoCam" type="file" accept="image/*" capture="environment" />
           </label>
@@ -41,7 +41,7 @@
             <input id="logoFile" type="file" accept="image/*,.svg" />
           </label>
         </div>
-        <div class="small" style="margin-top:6px">Sans logo ⇒ carré rouge "AD" blanc (style AD)</div>
+        <div class="small" style="margin-top:6px">Sans logo ⇒ carré rouge « AD » blanc (style AD)</div>
         <div class="row3" style="margin-top:12px">
           <div>
             <label class="txt">Focus largeur</label>
@@ -62,19 +62,19 @@
         <div class="row">
           <div>
             <label class="txt">Marque</label>
-            <input id="make" type="text" value="OPEL" />
+            <input id="make" type="text" value="DACIA" />
           </div>
           <div>
             <label class="txt">Modèle</label>
-            <input id="model" type="text" value="ADAM" />
+            <input id="model" type="text" value="SANDERO" />
           </div>
           <div>
             <label class="txt">Version / Finition</label>
-            <input id="version" type="text" value="1.4 TWINPORT 85ch White Edition" />
+            <input id="version" type="text" value="1.5 DCI" />
           </div>
           <div>
-            <label class="txt">Caractéristiques (/ séparés)</label>
-            <input id="features" type="text" value="CarPlay/Radars/Entretien/Garantie" />
+            <label class="txt">Caractéristiques (– séparés)</label>
+            <input id="features" type="text" value="CAMÉRA – GPS – TOIT PANO – CROCHET ATTELAGE" />
           </div>
           <div>
             <label class="txt">Année</label>
@@ -82,7 +82,7 @@
           </div>
           <div>
             <label class="txt">Boîte</label>
-            <input id="gearbox" type="text" value="Manuelle" />
+            <input id="gearbox" type="text" value="MANUELLE" />
           </div>
           <div>
             <label class="txt">Énergie</label>
@@ -90,19 +90,19 @@
           </div>
           <div>
             <label class="txt">Puissance (ch)</label>
-            <input id="power" type="text" value="85" />
+            <input id="power" type="text" value="110" />
           </div>
           <div>
             <label class="txt">Kilométrage</label>
-            <input id="mileage" type="text" value="71858" />
+            <input id="mileage" type="text" value="110000" />
           </div>
           <div>
             <label class="txt">Téléphone</label>
-            <input id="phone" type="text" value="06 16 13 15 89" />
+            <input id="phone" type="text" value="05 55 22 00 22" />
           </div>
           <div>
             <label class="txt">Prix (€)</label>
-            <input id="price" type="text" value="9990" />
+            <input id="price" type="text" value="12000" />
           </div>
         </div>
       </section>
@@ -110,12 +110,12 @@
       <section>
         <div>
           <label class="txt">Nom garage</label>
-          <input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" />
+          <input id="dealer" type="text" value="GARAGE LAUMOND" />
         </div>
-        <div class="row3" style="margin-top:12px">
+        <div class="row" style="margin-top:12px">
           <div>
-            <label class="txt">Couleur accent</label>
-            <input id="accent" type="color" value="#E30613" />
+            <label class="txt">Towns (séparées par virgules)</label>
+            <input id="towns" type="text" value="LANTEUIL, MEYSSAC, ARGENTAT" />
           </div>
           <div>
             <label class="txt">Statut</label>
@@ -125,6 +125,8 @@
               <option value="VENDU">VENDU</option>
             </select>
           </div>
+        </div>
+        <div class="row" style="margin-top:12px">
           <div>
             <label class="txt">Format</label>
             <select id="preset">
@@ -133,10 +135,10 @@
               <option value="story">Story 1080×1920</option>
             </select>
           </div>
-        </div>
-        <div class="actions" style="margin-top:12px">
-          <button id="btnGen" class="btn">Générer la fiche (PNG)</button>
-          <button id="btnCopy" class="btn">Copier la légende</button>
+          <div class="actions" style="align-items:end">
+            <button id="btnGen" class="btn">Générer la fiche (PNG)</button>
+            <button id="btnCopy" class="btn">Copier la légende</button>
+          </div>
         </div>
       </section>
     </div>
@@ -155,50 +157,71 @@ const fr = new Intl.NumberFormat('fr-FR');
 const $ = id => document.getElementById(id);
 let logoURL=null, photoURL=null;
 
-function formatPriceEUR(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(Number(d))+"€":""; }
-function formatKm(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(Number(d))+" km":""; }
+function fmtPrice(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" €":""; }
+function fmtKm(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" KMS":""; }
 function fitCover(sw,sh,dw,dh){ const sr=sw/sh, dr=dw/dh; if(sr>dr){ const sH=sh, sW=sH*dr, sx=(sw-sW)/2; return {sx,sy:0,sW,sH}; } else { const sW=sw, sH=sW/dr, sy=(sh-sH)/2; return {sx:0,sy,sW,sH}; } }
-function drawRoundRect(ctx,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath(); }
-function drawPaintBlob(ctx,x,y,w,h){ const r=Math.min(w,h)/2, cx=x+w/2, cy=y+h/2; ctx.beginPath(); for(let i=0;i<14;i++){ const ang=(i/14)*Math.PI*2; const rr=r*(0.85+0.25*Math.sin(i*1.7)); const px=cx+Math.cos(ang)*rr; const py=cy+Math.sin(ang)*rr; if(i===0) ctx.moveTo(px,py); else ctx.quadraticCurveTo(cx,cy,px,py);} ctx.closePath(); }
-function drawStatus(ctx,text,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='800 160px system-ui,-apple-system,Segoe UI,Roboto'; ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6; ctx.fillStyle=color; ctx.fillText(text,0,0); ctx.restore(); }
-function wrapText(ctx,text,x,y,maxW,lh,maxLines){ const wds=(text||'').split(/\s+/); let line=''; let lines=0; for(let i=0;i<wds.length;i++){ const test=line?line+' '+wds[i]:wds[i]; const w=ctx.measureText(test).width; if(w>maxW && i>0){ ctx.fillText(line,x,y); y+=lh; lines++; line=wds[i]; if(lines>=maxLines-1) break; } else line=test; } ctx.fillText(line,x,y); }
-function drawBlurredImage(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,blurPx){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${Math.max(2,blurPx)}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return; } const tmp=document.createElement('canvas'); const tctx=tmp.getContext('2d'); const scale=Math.max(8,Math.floor(Math.min(dW,dH)/20)); const tw=Math.max(1,Math.floor(dW/scale)), th=Math.max(1,Math.floor(dH/scale)); tmp.width=tw; tmp.height=th; tctx.imageSmoothingEnabled=true; tctx.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); ctx.globalAlpha=0.12; for(let i=0;i<8;i++){ const off=(i+1)*1.5; ctx.drawImage(tmp,0,0,tw,th,dx-off,dy,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx+off,dy,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx,dy-off,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx,dy+off,dW,dH);} ctx.globalAlpha=1; }
-function loadImage(url){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
+function rr(ctx,x,y,w,h,r){ const t=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+t,y); ctx.arcTo(x+w,y,x+w,y+h,t); ctx.arcTo(x+w,y+h,x,y+h,t); ctx.arcTo(x,y+h,x,y,t); ctx.arcTo(x,y,x+w,y,t); ctx.closePath(); }
+function starburst(ctx,cx,cy,outer,inner,points=16){ ctx.beginPath(); const step=Math.PI/points; for(let i=0;i<2*points;i++){ const r=(i%2===0)?outer:inner; const a=i*step; const x=cx+Math.cos(a)*r; const y=cy+Math.sin(a)*r; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.closePath(); }
+function statusDiag(ctx,text,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/12); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='800 150px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillStyle=color; ctx.shadowColor='rgba(0,0,0,0.3)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6; ctx.fillText(text,0,0); ctx.restore(); }
+function wrap(ctx,txt,x,y,maxW,lh,maxLines){ const wds=(txt||'').split(/\s+/); let line=''; let lines=0; for(let i=0;i<wds.length;i++){ const test=line?line+' '+wds[i]:wds[i]; const w=ctx.measureText(test).width; if(w>maxW&&i>0){ ctx.fillText(line,x,y); y+=lh; lines++; line=wds[i]; if(lines>=maxLines-1) break; } else line=test; } ctx.fillText(line,x,y); }
+function loadImg(url){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
+function drawBlur(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,blur=26){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${blur}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter='none'; return; } const tmp=document.createElement('canvas'); const t=tmp.getContext('2d'); const sc=Math.max(8,Math.floor(Math.min(dW,dH)/20)); const tw=Math.max(1,Math.floor(dW/sc)), th=Math.max(1,Math.floor(dH/sc)); tmp.width=tw; tmp.height=th; t.imageSmoothingEnabled=true; t.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); }
 
-// ====== Render (layout fixe) ======
-async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,primary,logoUrl,photoUrl,focusX,focusY,focusOff,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; const bg='#FFFFFF', fg='#111827', sub='#4B5563'; ctx.clearRect(0,0,outW,outH); ctx.fillStyle=bg; ctx.fillRect(0,0,outW,outH);
-  const M=48; const photoH=Math.round(outH*(preset==='story'?0.56:preset==='portrait'?0.52:0.56)); const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
-  if(photoUrl){ const img=await loadImage(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip(); drawBlurredImage(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,26); const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focusOff); const rx=(photoRect.w/2)*focusX; const ry=(photoRect.h/2)*focusY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+160); g.addColorStop(0,'rgba(0,0,0,0.35)'); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,Math.min(photoRect.h,160)); ctx.restore(); }
-  else { ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip(); const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#E5E7EB'); g.addColorStop(1,'#F3F4F6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); }
-  const pad=24; if(logoUrl){ const logo=await loadImage(logoUrl); const maxW=220,maxH=72; const fit=Math.min(maxW/logo.naturalWidth,maxH/logo.naturalHeight,1); const lw=Math.round(logo.naturalWidth*fit), lh=Math.round(logo.naturalHeight*fit); const lx=photoRect.x+pad, ly=photoRect.y+pad; ctx.save(); ctx.globalAlpha=1; drawRoundRect(ctx,lx-16,ly-12,lw+32,lh+24,14); ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fill(); ctx.drawImage(logo,lx,ly,lw,lh); ctx.restore(); } else { const lx=photoRect.x+pad, ly=photoRect.y+pad, s=72; ctx.save(); drawRoundRect(ctx,lx-8,ly-8,s+16,s+16,12); ctx.fillStyle=primary; ctx.fill(); ctx.fillStyle='#FFFFFF'; ctx.font='800 52px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='top'; ctx.fillText('AD', lx+10, ly+4); ctx.restore(); }
-  if(status!=='aucun') drawStatus(ctx, status, photoRect, primary);
-  const price=formatPriceEUR(vehicle.price); if(price){ const pw=360, ph=160, px=photoRect.x+photoRect.w-pw-16, py=photoRect.y+photoRect.h-ph-16; ctx.save(); drawPaintBlob(ctx,px,py,pw,ph); ctx.fillStyle=primary; ctx.fill(); ctx.fillStyle='#111827'; ctx.font='900 56px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(price, px+36, py+ph/2+18); ctx.restore(); }
-  const titleY=photoRect.y+photoRect.h+48; ctx.fillStyle=fg; ctx.font='800 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(`${vehicle.make} ${vehicle.model}`.trim(), M, titleY);
-  const subY1=titleY+48; ctx.fillStyle=sub; ctx.font='600 36px system-ui,-apple-system,Segoe UI,Roboto'; wrapText(ctx, vehicle.version, M, subY1, outW-2*M, 40, 2);
-  const subY2=subY1+48; ctx.font='500 34px system-ui,-apple-system,Segoe UI,Roboto'; wrapText(ctx, vehicle.features.split('/').join('/'), M, subY2, outW-2*M, 38, 2);
-  const specsY=subY2+58; ctx.fillStyle=sub; ctx.font='700 34px system-ui,-apple-system,Segoe UI,Roboto'; const specs=`${vehicle.year}  •  ${vehicle.gearbox}  •  ${vehicle.fuel}  •  ${vehicle.power} ch  •  ${formatKm(vehicle.mileage)}`; wrapText(ctx, specs, M, specsY, outW-2*M, 38, 2);
-  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, specsY + 42); ctx.lineTo(outW-M, specsY + 42); ctx.stroke();
-  const footerY=outH-120; ctx.fillStyle=sub; ctx.font='800 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(dealerName, M, footerY);
-  const phone=`${vehicle.phone}`; const tw=ctx.measureText(phone).width; ctx.fillText(phone, outW-M-tw, footerY);
+// ====== Render ======
+async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,towns,logoUrl,photoUrl,focusX,focusY,focusOff,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; ctx.clearRect(0,0,outW,outH); ctx.fillStyle='#fff'; ctx.fillRect(0,0,outW,outH);
+
+  // Outer border style (bleu foncé)
+  const B=10; ctx.lineWidth=B; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--blue'); ctx.strokeRect(B/2+18, B/2+18, outW-B-36, outH-B-36);
+
+  // Photo container (arrondi XL, ombre douce)
+  const M=56; const photoH=Math.round(outH*0.58); const photoRect={x:M, y:M, w:outW-2*M, h:photoH};
+  ctx.save(); rr(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,44); ctx.clip();
+  if(photoUrl){ const img=await loadImg(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); drawBlur(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,24); const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focusOff); const rx=(photoRect.w/2)*focusX; const ry=(photoRect.h/2)*focusY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); } else { const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#e5e7eb'); g.addColorStop(1,'#f3f4f6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h);} ctx.restore();
+  // Inner shadow-ish
+  ctx.save(); rr(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,44); ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=2; ctx.stroke(); ctx.restore();
+
+  // Logo AD + Garage + towns (en haut gauche dans la photo)
+  const pad=26; const lx=photoRect.x+pad, ly=photoRect.y+pad; if(logoUrl){ const logo=await loadImg(logoUrl); const maxW=140, maxH=52; const f=Math.min(maxW/logo.naturalWidth,maxH/logo.naturalHeight,1); const lw=Math.round(logo.naturalWidth*f), lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, lx, ly, lw, lh); drawDealer(ctx, lx+lw+16, ly+6, dealerName, towns); } else { // fake AD badge
+    const s=64; ctx.save(); rr(ctx,lx,ly,s,s,12); ctx.fillStyle=get('--accent'); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='800 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.textAlign='center'; ctx.fillText('AD', lx+s/2, ly+s/2+2); ctx.restore(); drawDealer(ctx, lx+s+16, ly+6, dealerName, towns); }
+
+  // Price starburst (en bas droite de l'image)
+  const starCX = photoRect.x + photoRect.w - 150; const starCY = photoRect.y + photoRect.h - 50; ctx.save(); starburst(ctx, starCX, starCY, 110, 60, 14); ctx.fillStyle=get('--accent'); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='900 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(fmtPrice(vehicle.price), starCX, starCY+2); ctx.restore();
+
+  // Titre et textes
+  const titleY=photoRect.y+photoRect.h+34; ctx.fillStyle='#111827'; ctx.font='900 66px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText((vehicle.make+' '+vehicle.model).toUpperCase(), M, titleY);
+  const vY=titleY+44; ctx.font='700 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText((vehicle.version||'').toUpperCase(), M, vY);
+  const fY=vY+42; ctx.font='800 30px system-ui,-apple-system,Segoe UI,Roboto'; wrap(ctx, (vehicle.features||'').toUpperCase(), M, fY, outW-2*M, 36, 2);
+
+  // Specs (ligne icônes simplifiées)
+  const sY=fY+60; ctx.font='600 30px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle=get('--sub'); const specs=[vehicle.year, vehicle.gearbox, vehicle.fuel, vehicle.power+' ch', fmtKm(vehicle.mileage)]; const join='  •  '; const txt=specs.filter(Boolean).join(join); ctx.fillText(txt, M, sY);
+
+  // Footer: phone pill (en bas droite)
+  const footerY=outH-96; const phone=' '+(vehicle.phone||''); ctx.font='800 34px system-ui,-apple-system,Segoe UI,Roboto'; const tw=ctx.measureText(phone).width; const px=outW-M- (tw+80); const py=footerY-36; const pw=tw+80; const ph=56; rr(ctx,px,py,pw,ph,28); ctx.fillStyle=get('--pink'); ctx.fill(); ctx.fillStyle='#fff'; ctx.fillText(phone, px+56, footerY); // pictogramme
+  ctx.beginPath(); ctx.arc(px+30, py+ph/2, 10, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+
+  // Statut (si choisi)
+  if(status!=='aucun') statusDiag(ctx, status, photoRect, get('--accent'));
 }
 
-function makeCaption(v, dealer){ return [ `${v.make} ${v.model} ${v.year}`, v.version, v.features.split('/').join(' • '), `💶 ${formatPriceEUR(v.price)}`, `🧭 ${formatKm(v.mileage)} • ⛽️ ${v.fuel} • ⚙️ ${v.gearbox} • 🐎 ${v.power} ch`, dealer ].filter(Boolean).join('\n'); }
+function drawDealer(ctx, x, y, dealer, townsCSV){ ctx.fillStyle='#111827'; ctx.font='700 22px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(dealer||'', x, y+18); const towns=(townsCSV||'').split(',').map(s=>s.trim()).filter(Boolean); ctx.font='700 16px system-ui,-apple-system,Segoe UI,Roboto'; let cx=x, base=y+42; towns.forEach((t,i)=>{ const w=ctx.measureText(t).width; ctx.fillStyle='#1f2937'; ctx.fillText(t, cx, base); ctx.strokeStyle='#1f2937'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx, base+4); ctx.lineTo(cx+w, base+4); ctx.stroke(); cx += w + 16; }); }
+function get(name){ return getComputedStyle(document.documentElement).getPropertyValue(name) || '#000'; }
 
 // ====== State + bindings ======
-const state={ preset:'portrait', primary:'#E30613', status:'aucun', focusX:0.78, focusY:0.55, focusOff:0.02, dealerName: $('dealer').value, vehicle: { make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value } };
+const state={ preset:'portrait', status:'aucun', focusX:0.78, focusY:0.55, focusOff:0.02, dealerName: $('dealer').value, towns: $('towns').value, vehicle: { make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value } };
 
-function bind(){ const map=[ ['make','vehicle.make'], ['model','vehicle.model'], ['version','vehicle.version'], ['features','vehicle.features'], ['year','vehicle.year'], ['gearbox','vehicle.gearbox'], ['fuel','vehicle.fuel'], ['power','vehicle.power'], ['mileage','vehicle.mileage'], ['price','vehicle.price'], ['phone','vehicle.phone'], ['dealer','dealerName'] ]; map.forEach(([id,path])=>{ $(id).addEventListener('input', ()=>{ set(path, $(id).value); schedule(); }); }); $('preset').addEventListener('change', ()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change', ()=>{ state.status=$('status').value; schedule(); }); $('accent').addEventListener('input', ()=>{ state.primary=$('accent').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input', ()=>{ state[id]=$('#'+id).value*1; schedule(); }));
-  $('logoFile').addEventListener('change', (e)=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); });
-  const pickPhoto=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); };
+function bind(){ const map=[ ['make','vehicle.make'], ['model','vehicle.model'], ['version','vehicle.version'], ['features','vehicle.features'], ['year','vehicle.year'], ['gearbox','vehicle.gearbox'], ['fuel','vehicle.fuel'], ['power','vehicle.power'], ['mileage','vehicle.mileage'], ['price','vehicle.price'], ['phone','vehicle.phone'], ['dealer','dealerName'], ['towns','towns'] ]; map.forEach(([id,path])=>$(id).addEventListener('input',()=>{ set(path,$(id).value); schedule(); })); $('preset').addEventListener('change', ()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change', ()=>{ state.status=$('status').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',()=>{ state[id]=$('#'+id).value*1; schedule(); }));
+  $('logoFile').addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); });
+  const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); };
   $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto);
-  $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); const dims=PRESETS[state.preset]; await renderSheet(c, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ios=/iPad|iPhone|iPod/.test(navigator.userAgent); c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); if(ios) window.open(url,'_blank'); else { const a=document.createElement('a'); const fn=`${state.vehicle.make}-${state.vehicle.model}-${state.vehicle.year}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(()=>URL.revokeObjectURL(url),1500); },'image/png'); });
-  $('btnCopy').addEventListener('click', ()=>{ navigator.clipboard.writeText(makeCaption(state.vehicle, state.dealerName)); });
+  $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); await renderSheet(c, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ios=/iPad|iPhone|iPod/.test(navigator.userAgent); c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); if(ios) window.open(url,'_blank'); else { const a=document.createElement('a'); const fn=`${state.vehicle.make}-${state.vehicle.model}-${state.vehicle.year}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); });
+  $('btnCopy').addEventListener('click', ()=>{ navigator.clipboard.writeText(makeCaption(state.vehicle, state.dealerName, state.towns)); });
 }
-
-function set(path, val){ const parts=path.split('.'); let cur=state; for(let i=0;i<parts.length-1;i++) cur=cur[parts[i]]; cur[parts[parts.length-1]]=val; }
+function set(path,val){ const ps=path.split('.'); let cur=state; for(let i=0;i<ps.length-1;i++) cur=cur[ps[i]]; cur[ps.at(-1)]=val; }
 
 let raf=null; function schedule(){ if(raf) cancelAnimationFrame(raf); raf=requestAnimationFrame(drawPreview); }
-async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
+async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const r=0.38; c.width=Math.round(dims.w*r); c.height=Math.round(dims.h*r); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
+
+function makeCaption(v, dealer, towns){ return [ `${v.make} ${v.model} ${v.year}`, v.version, v.features, `Prix: ${fmtPrice(v.price)}`, `${v.fuel} • ${v.gearbox} • ${v.power}ch • ${fmtKm(v.mileage)}`, `${dealer} – ${towns}` ].filter(Boolean).join('\n'); }
 
 bind(); schedule();
 </script>
