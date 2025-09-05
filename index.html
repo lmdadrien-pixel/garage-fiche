@@ -1,437 +1,232 @@
-// path: src/App.tsx
-// Fiche véhicule Instagram – Layout FIXE + Flou fiable + Thème AD
-// - Tous les textes/logo/prix restent à des positions PIXEL FIXES
-// - Flou arrière‑plan de la photo (fallback si ctx.filter indisponible sur vieux iOS)
-// - Statut RÉSERVÉ/VENDU en diagonale sur la photo
-// - Thème AD + couleurs personnalisables
-// - Export PNG prêt à publier
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fiche véhicule Instagram – AD</title>
+  <style>
+    :root{
+      --bg:#ffffff; --fg:#111827; --sub:#6b7280;
+      --primary:#E30613; /* AD rouge */
+      --ribbon:#001E62;  /* AD bleu */
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font:16px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, "Helvetica Neue", Arial, system-ui; color:var(--fg); background:var(--bg)}
+    .wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:400px 1fr;gap:24px}
+    @media(max-width:980px){.wrap{grid-template-columns:1fr}}
+    h1{margin:0 0 12px;font-size:24px}
+    section{border:1px solid #e5e7eb;border-radius:16px;padding:16px;background:#fff}
+    label.txt{display:block;font-size:13px;margin-bottom:8px;color:var(--sub)}
+    input[type="text"], select{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .btn{border:1px solid #e5e7eb;border-radius:16px;padding:10px 14px;background:#fff;cursor:pointer}
+    .uploader{display:inline-block}
+    .uploader input{display:none}
+    .small{color:var(--sub);font-size:12px}
+    .actions{display:flex;gap:8px}
+    canvas{background:#fff;border:1px solid #e5e7eb;border-radius:12px;max-width:100%}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <h1>Fiche véhicule Instagram</h1>
 
-import React, { useEffect, useRef, useState } from "react";
-
-// ========================= Types & Const =========================
-
-type Preset = "square" | "portrait" | "story";
-
-interface VehicleData {
-  make: string;
-  model: string;
-  version: string;
-  features: string;
-  year: string;
-  gearbox: string;
-  fuel: string;
-  mileage: string;
-  power: string;
-  price: string;
-  city: string;
-  phone: string;
-}
-
-interface ThemeDef {
-  name: string;
-  primary: string;   // accent (badge prix + statut)
-  ribbonBg: string;  // ruban bas
-  textDark: boolean; // fond clair (true) / sombre (false)
-  bg: string;        // fond canvas
-  fg: string;        // texte principal
-  sub: string;       // texte secondaire
-}
-
-const THEMES: ThemeDef[] = [
-  // Couleurs AD (modifiables)
-  { name: "AD", primary: "#E30613", ribbonBg: "#001E62", textDark: true, bg: "#FFFFFF", fg: "#111827", sub: "#4B5563" },
-  { name: "Clair", primary: "#2563EB", ribbonBg: "#FACC15", textDark: true, bg: "#FFFFFF", fg: "#111827", sub: "#4B5563" },
-  { name: "Sombre", primary: "#F3F4F6", ribbonBg: "#1F2937", textDark: false, bg: "#0B0B0B", fg: "#F9FAFB", sub: "#D1D5DB" },
-];
-
-const PRESETS: Record<Preset, { w: number; h: number; label: string }> = {
-  square:   { w: 1080, h: 1080, label: "Carré 1080×1080" },
-  portrait: { w: 1080, h: 1350, label: "Portrait 1080×1350" },
-  story:    { w: 1080, h: 1920, label: "Story 1080×1920" },
-};
-
-const DEFAULT_VEHICLE: VehicleData = {
-  make: "OPEL",
-  model: "ADAM",
-  version: "1.4 TWINPORT 85ch White Edition",
-  features: "CarPlay/Radars/Entretien/Garantie",
-  year: "2019",
-  gearbox: "Manuelle",
-  fuel: "ESSENCE",
-  mileage: "71858",
-  power: "85",
-  price: "9990",
-  city: "Brive-la-Gaillarde",
-  phone: "06 16 13 15 89",
-};
-
-const fr = new Intl.NumberFormat("fr-FR");
-
-// ========================= Utils =========================
-
-function formatPriceEUR(input: string): string {
-  const digits = (input || "").replace(/[^0-9]/g, "");
-  if (!digits) return "";
-  return fr.format(Number(digits)) + "€";
-}
-
-function formatKm(input: string): string {
-  const digits = (input || "").replace(/[^0-9]/g, "");
-  if (!digits) return "";
-  return fr.format(Number(digits)) + " km";
-}
-
-function isiOS(): boolean {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
-
-function fitCover(srcW: number, srcH: number, dstW: number, dstH: number) {
-  const srcRatio = srcW / srcH;
-  const dstRatio = dstW / dstH;
-  if (srcRatio > dstRatio) {
-    const sH = srcH; const sW = sH * dstRatio; const sx = (srcW - sW) / 2; return { sx, sy: 0, sW, sH };
-  } else {
-    const sW = srcW; const sH = sW / dstRatio; const sy = (srcH - sH) / 2; return { sx: 0, sy, sW, sH };
-  }
-}
-
-async function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => resolve(img); img.onerror = reject; img.src = url; });
-}
-
-function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  const rr = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + rr, y);
-  ctx.arcTo(x + w, y, x + w, y + h, rr);
-  ctx.arcTo(x + w, y + h, x, y + h, rr);
-  ctx.arcTo(x, y + h, x, y, rr);
-  ctx.arcTo(x, y, x + w, y, rr);
-  ctx.closePath();
-}
-
-function drawPaintBlob(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
-  const r = Math.min(w, h) / 2; const cx = x + w / 2; const cy = y + h / 2;
-  ctx.beginPath();
-  for (let i = 0; i < 14; i++) {
-    const ang = (i / 14) * Math.PI * 2; const rr = r * (0.85 + 0.25 * Math.sin(i * 1.7));
-    const px = cx + Math.cos(ang) * rr; const py = cy + Math.sin(ang) * rr;
-    if (i === 0) ctx.moveTo(px, py); else ctx.quadraticCurveTo(cx, cy, px, py);
-  }
-  ctx.closePath();
-}
-
-function drawStatus(ctx: CanvasRenderingContext2D, text: string, rect: { x: number; y: number; w: number; h: number }, color: string) {
-  ctx.save(); ctx.translate(rect.x + rect.w / 2, rect.y + rect.h / 2); ctx.rotate(-Math.PI / 14);
-  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 160px Inter, ui-sans-serif, system-ui";
-  ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6; ctx.fillStyle = color; ctx.fillText(text, 0, 0);
-  ctx.restore();
-}
-
-// Blurring: use ctx.filter if available; fallback with downscale + multi-pass upsample
-function drawBlurredImage(
-  ctx: CanvasRenderingContext2D,
-  img: CanvasImageSource,
-  sx: number, sy: number, sW: number, sH: number,
-  dx: number, dy: number, dW: number, dH: number,
-  blurPx: number
-) {
-  const anyCtx: any = ctx as any;
-  if (typeof anyCtx.filter === "string") {
-    const prev = anyCtx.filter; anyCtx.filter = `blur(${Math.max(2, blurPx)}px)`;
-    ctx.drawImage(img, sx, sy, sW, sH, dx, dy, dW, dH); anyCtx.filter = prev; return;
-  }
-  const tmp = document.createElement("canvas"); const tctx = tmp.getContext("2d")!;
-  const scale = Math.max(8, Math.floor(Math.min(dW, dH) / 20));
-  const tw = Math.max(1, Math.floor(dW / scale)); const th = Math.max(1, Math.floor(dH / scale));
-  tmp.width = tw; tmp.height = th; tctx.imageSmoothingEnabled = true;
-  tctx.drawImage(img, sx, sy, sW, sH, 0, 0, tw, th);
-  ctx.imageSmoothingEnabled = true; ctx.drawImage(tmp, 0, 0, tw, th, dx, dy, dW, dH);
-  ctx.globalAlpha = 0.12; for (let i = 0; i < 8; i++) { const off = (i + 1) * 1.5;
-    ctx.drawImage(tmp, 0, 0, tw, th, dx - off, dy, dW, dH);
-    ctx.drawImage(tmp, 0, 0, tw, th, dx + off, dy, dW, dH);
-    ctx.drawImage(tmp, 0, 0, tw, th, dx, dy - off, dW, dH);
-    ctx.drawImage(tmp, 0, 0, tw, th, dx, dy + off, dW, dH);
-  }
-  ctx.globalAlpha = 1;
-}
-
-function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, maxLines: number) {
-  const words = (text || "").split(/\s+/); let line = ""; let lines = 0;
-  for (let i = 0; i < words.length; i++) {
-    const test = line ? line + " " + words[i] : words[i]; const w = ctx.measureText(test).width;
-    if (w > maxWidth && i > 0) { ctx.fillText(line, x, y); y += lineHeight; lines++; line = words[i]; if (lines >= maxLines - 1) break; }
-    else line = test;
-  }
-  ctx.fillText(line, x, y);
-}
-
-function useFontsReady() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => { (async () => { try { await (document as any).fonts?.load("700 24px Inter"); await (document as any).fonts?.ready; } catch {} setReady(true); })(); }, []);
-  return ready;
-}
-
-function caption(v: VehicleData, dealer: string) {
-  return [
-    `${v.make} ${v.model} ${v.year}`,
-    v.version,
-    v.features.split("/").join(" • "),
-    `📍 ${v.city}`,
-    `💶 ${formatPriceEUR(v.price)} | 🧭 ${formatKm(v.mileage)} | ⛽️ ${v.fuel} | ⚙️ ${v.gearbox} | 🐎 ${v.power} ch`,
-    `☎️ ${v.phone}`,
-    dealer,
-  ].filter(Boolean).join("\n");
-}
-
-// ========================= App =========================
-
-export default function App() {
-  const [preset, setPreset] = useState<Preset>("portrait");
-  const dims = PRESETS[preset];
-
-  const [vehicle, setVehicle] = useState<VehicleData>(DEFAULT_VEHICLE);
-  const [dealerName, setDealerName] = useState("GARAGE LAUMOND – Lanteuil • Meyssac • Argentat");
-  const [ribbonText, setRibbonText] = useState("Garantie 6 mois  •  En stock  •  Livraison  •  Financement  •  Reprise");
-
-  const [themeIdx, setThemeIdx] = useState(0); // AD par défaut
-  const theme = THEMES[themeIdx];
-
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-
-  const [focus, setFocus] = useState({ scaleX: 0.78, scaleY: 0.55, offsetY: 0.02 });
-  const [status, setStatus] = useState<"aucun" | "RÉSERVÉ" | "VENDU">("aucun");
-
-  const previewRef = useRef<HTMLCanvasElement | null>(null);
-  const exportRef = useRef<HTMLCanvasElement | null>(null);
-
-  const fontsReady = useFontsReady();
-
-  // Preview re-render (même rendu que l'export → positions identiques)
-  useEffect(() => { (async () => { if (!fontsReady) return; const c = previewRef.current; if (!c) return; const ratio = 0.38; c.width = Math.round(dims.w * ratio); c.height = Math.round(dims.h * ratio); const ctx = c.getContext("2d"); if (!ctx) return; const off = document.createElement("canvas"); off.width = dims.w; off.height = dims.h; await render(off); ctx.drawImage(off, 0, 0, c.width, c.height); })(); }, [preset, vehicle, dealerName, ribbonText, themeIdx, logoUrl, photoUrl, focus, status, fontsReady]);
-
-  async function render(target: HTMLCanvasElement) {
-    await renderSheet(target, { preset, vehicle, dealerName, ribbonText, theme, logoUrl, photoUrl, focus, status });
-  }
-
-  async function generateAndDownload() {
-    if (!fontsReady) return; // évite décalages
-    const c = exportRef.current; if (!c) return; c.width = dims.w; c.height = dims.h; await render(c);
-    c.toBlob((blob) => { if (!blob) return; const url = URL.createObjectURL(blob); if (isiOS()) window.open(url, "_blank"); else { const a = document.createElement("a"); a.href = url; a.download = `${vehicle.make}-${vehicle.model}-${vehicle.year}-${preset}.png`.replace(/[^a-z0-9-_]+/gi, "-"); document.body.appendChild(a); a.click(); a.remove(); } setTimeout(() => URL.revokeObjectURL(url), 1500); }, "image/png");
-  }
-
-  function onPick(setter: (u: string | null) => void) {
-    return (file?: File) => { if (!file || !file.type.startsWith("image/")) return; const url = URL.createObjectURL(file); setter((prev) => { if (prev) URL.revokeObjectURL(prev); return url; }); };
-  }
-
-  return (
-    <div className="min-h-screen p-6" style={{ background: theme.bg, color: theme.fg }}>
-      <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-[440px_1fr] gap-6">
-        {/* === Formulaire gauche === */}
-        <div className="space-y-5">
-          <h1 className="text-2xl font-bold">Fiche véhicule Instagram (layout fixe)</h1>
-
-          <Section title="Photo véhicule">
-            <div className="flex flex-wrap gap-2">
-              <FileButton label="Prendre une photo (iPhone)" accept="image/*" capture onPick={onPick(setPhotoUrl)} />
-              <FileButton label="Importer une photo" accept="image/*" onPick={onPick(setPhotoUrl)} />
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <Slider label="Focus largeur" value={focus.scaleX} setValue={(v) => setFocus({ ...focus, scaleX: v })} min={0.4} max={1.1} step={0.01} />
-              <Slider label="Focus hauteur" value={focus.scaleY} setValue={(v) => setFocus({ ...focus, scaleY: v })} min={0.35} max={1.1} step={0.01} />
-              <Slider label="Focus position Y" value={focus.offsetY} setValue={(v) => setFocus({ ...focus, offsetY: v })} min={-0.25} max={0.25} step={0.005} />
-            </div>
-          </Section>
-
-          <Section title="Logo & identité">
-            <div className="flex items-center gap-3">
-              <FileButton label="Logo AD (PNG/SVG)" accept="image/*,.svg" onPick={onPick(setLogoUrl)} />
-              <small style={{ color: theme.sub }}>Sans logo ⇒ monogramme "AD" auto</small>
-            </div>
-            <Input label="Nom garage" value={dealerName} onChange={setDealerName} />
-            <Input label="Texte ruban bas" value={ribbonText} onChange={setRibbonText} />
-            <div className="grid grid-cols-3 gap-3">
-              {/* Couleur accent & ruban éditables depuis le thème AD */}
-              <ColorInput label="Couleur accent" value={theme.primary} onChange={(v) => updateTheme(0, { primary: v })} />
-              <Select label="Thème" value={String(themeIdx)} onChange={(v) => setThemeIdx(parseInt(v))} options={THEMES.map((t, i) => ({ label: t.name, value: String(i) }))} />
-              <ColorInput label="Couleur ruban" value={theme.ribbonBg} onChange={(v) => updateTheme(themeIdx, { ribbonBg: v })} />
-            </div>
-          </Section>
-
-          <Section title="Détails véhicule">
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Marque" value={vehicle.make} onChange={(v) => setVehicle({ ...vehicle, make: v })} />
-              <Input label="Modèle" value={vehicle.model} onChange={(v) => setVehicle({ ...vehicle, model: v })} />
-              <Input label="Version / Finition" value={vehicle.version} onChange={(v) => setVehicle({ ...vehicle, version: v })} />
-              <Input label="Caractéristiques (\/ séparés)" value={vehicle.features} onChange={(v) => setVehicle({ ...vehicle, features: v })} />
-              <Input label="Année" value={vehicle.year} onChange={(v) => setVehicle({ ...vehicle, year: v })} />
-              <Input label="Boîte" value={vehicle.gearbox} onChange={(v) => setVehicle({ ...vehicle, gearbox: v })} />
-              <Input label="Énergie" value={vehicle.fuel} onChange={(v) => setVehicle({ ...vehicle, fuel: v })} />
-              <Input label="Puissance (ch)" value={vehicle.power} onChange={(v) => setVehicle({ ...vehicle, power: v })} />
-              <Input label="Kilométrage" value={vehicle.mileage} onChange={(v) => setVehicle({ ...vehicle, mileage: v })} />
-              <Input label="Téléphone" value={vehicle.phone} onChange={(v) => setVehicle({ ...vehicle, phone: v })} />
-              <Input label="Ville" value={vehicle.city} onChange={(v) => setVehicle({ ...vehicle, city: v })} />
-              <Input label="Prix (€)" value={vehicle.price} onChange={(v) => setVehicle({ ...vehicle, price: v })} />
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <Select label="Statut" value={status} onChange={(v) => setStatus(v as any)} options={[{label:"aucun",value:"aucun"},{label:"RÉSERVÉ",value:"RÉSERVÉ"},{label:"VENDU",value:"VENDU"}]} />
-              <Select label="Format" value={preset} onChange={(v) => setPreset(v as Preset)} options={[{label:PRESETS.square.label,value:"square"},{label:PRESETS.portrait.label,value:"portrait"},{label:PRESETS.story.label,value:"story"}]} />
-              <button className="px-3 py-2 rounded-2xl border self-end" onClick={() => navigator.clipboard.writeText(caption(vehicle, dealerName))}>Copier légende</button>
-            </div>
-          </Section>
-
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-2xl border" onClick={generateAndDownload}>Générer la fiche (PNG)</button>
+      <section>
+        <div class="actions" style="gap:8px;flex-wrap:wrap">
+          <label class="uploader btn">Prendre une photo (iPhone)
+            <input id="photoCam" type="file" accept="image/*" capture="environment" />
+          </label>
+          <label class="uploader btn">Importer une photo
+            <input id="photoFile" type="file" accept="image/*" />
+          </label>
+          <label class="uploader btn">Logo AD (PNG/SVG)
+            <input id="logoFile" type="file" accept="image/*,.svg" />
+          </label>
+        </div>
+        <div class="small" style="margin-top:6px">Sans logo ⇒ monogramme "AD" auto</div>
+        <div class="row3" style="margin-top:12px">
+          <div>
+            <label class="txt">Focus largeur</label>
+            <input id="focusX" type="range" min="0.4" max="1.1" step="0.01" value="0.78" />
+          </div>
+          <div>
+            <label class="txt">Focus hauteur</label>
+            <input id="focusY" type="range" min="0.35" max="1.1" step="0.01" value="0.55" />
+          </div>
+          <div>
+            <label class="txt">Focus position Y</label>
+            <input id="focusOff" type="range" min="-0.25" max="0.25" step="0.005" value="0.02" />
           </div>
         </div>
+      </section>
 
-        {/* === Prévisualisation droite === */}
-        <div className="space-y-3">
-          <div className="text-sm" style={{ color: theme.sub }}>Prévisualisation ({PRESETS[preset].label})</div>
-          <canvas ref={previewRef} className="w-full max-w-[720px] border rounded-xl bg-white" />
-          <canvas ref={exportRef} className="hidden" />
+      <section>
+        <div class="row">
+          <div>
+            <label class="txt">Marque</label>
+            <input id="make" type="text" value="OPEL" />
+          </div>
+          <div>
+            <label class="txt">Modèle</label>
+            <input id="model" type="text" value="ADAM" />
+          </div>
+          <div>
+            <label class="txt">Version / Finition</label>
+            <input id="version" type="text" value="1.4 TWINPORT 85ch White Edition" />
+          </div>
+          <div>
+            <label class="txt">Caractéristiques (/ séparés)</label>
+            <input id="features" type="text" value="CarPlay/Radars/Entretien/Garantie" />
+          </div>
+          <div>
+            <label class="txt">Année</label>
+            <input id="year" type="text" value="2019" />
+          </div>
+          <div>
+            <label class="txt">Boîte</label>
+            <input id="gearbox" type="text" value="Manuelle" />
+          </div>
+          <div>
+            <label class="txt">Énergie</label>
+            <input id="fuel" type="text" value="ESSENCE" />
+          </div>
+          <div>
+            <label class="txt">Puissance (ch)</label>
+            <input id="power" type="text" value="85" />
+          </div>
+          <div>
+            <label class="txt">Kilométrage</label>
+            <input id="mileage" type="text" value="71858" />
+          </div>
+          <div>
+            <label class="txt">Téléphone</label>
+            <input id="phone" type="text" value="06 16 13 15 89" />
+          </div>
+          <div>
+            <label class="txt">Ville</label>
+            <input id="city" type="text" value="Brive-la-Gaillarde" />
+          </div>
+          <div>
+            <label class="txt">Prix (€)</label>
+            <input id="price" type="text" value="9990" />
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section>
+        <div>
+          <label class="txt">Nom garage</label>
+          <input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" />
+        </div>
+        <div style="margin-top:8px">
+          <label class="txt">Texte ruban bas</label>
+          <input id="ribbon" type="text" value="Garantie 6 mois  •  En stock  •  Livraison  •  Financement  •  Reprise" />
+        </div>
+        <div class="row3" style="margin-top:12px">
+          <div>
+            <label class="txt">Couleur accent</label>
+            <input id="accent" type="color" value="#E30613" />
+          </div>
+          <div>
+            <label class="txt">Couleur ruban</label>
+            <input id="ribbonColor" type="color" value="#001E62" />
+          </div>
+          <div>
+            <label class="txt">Statut</label>
+            <select id="status">
+              <option value="aucun">aucun</option>
+              <option value="RÉSERVÉ">RÉSERVÉ</option>
+              <option value="VENDU">VENDU</option>
+            </select>
+          </div>
+        </div>
+        <div class="row3" style="margin-top:12px">
+          <div>
+            <label class="txt">Format</label>
+            <select id="preset">
+              <option value="portrait">Portrait 1080×1350</option>
+              <option value="square">Carré 1080×1080</option>
+              <option value="story">Story 1080×1920</option>
+            </select>
+          </div>
+          <div class="actions" style="align-items:end">
+            <button id="btnGen" class="btn">Générer la fiche (PNG)</button>
+          </div>
+          <div class="actions" style="align-items:end">
+            <button id="btnCopy" class="btn">Copier la légende</button>
+          </div>
+        </div>
+      </section>
     </div>
-  );
+
+    <div>
+      <div class="small" id="previewLabel">Prévisualisation</div>
+      <canvas id="preview"></canvas>
+      <canvas id="export" style="display:none"></canvas>
+    </div>
+  </div>
+
+<script>
+// ====== Data & helpers ======
+const PRESETS = {
+  square:   { w:1080, h:1080, label:"Carré 1080×1080" },
+  portrait: { w:1080, h:1350, label:"Portrait 1080×1350" },
+  story:    { w:1080, h:1920, label:"Story 1080×1920" },
+};
+const fr = new Intl.NumberFormat('fr-FR');
+const $ = (id)=>document.getElementById(id);
+let logoURL = null; let photoURL = null;
+
+function formatPriceEUR(v){ const d=(v||'').replace(/[^0-9]/g,''); if(!d) return ''; return fr.format(Number(d))+"€"; }
+function formatKm(v){ const d=(v||'').replace(/[^0-9]/g,''); if(!d) return ''; return fr.format(Number(d))+" km"; }
+function fitCover(sw,sh,dw,dh){ const sr=sw/sh, dr=dw/dh; if(sr>dr){ const sH=sh; const sW=sH*dr; const sx=(sw-sW)/2; return {sx,sy:0,sW,sH}; } else { const sW=sw; const sH=sW/dr; const sy=(sh-sH)/2; return {sx:0,sy,sW,sH}; } }
+function drawRoundRect(ctx,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath(); }
+function drawPaintBlob(ctx,x,y,w,h){ const r=Math.min(w,h)/2, cx=x+w/2, cy=y+h/2; ctx.beginPath(); for(let i=0;i<14;i++){ const ang=(i/14)*Math.PI*2; const rr=r*(0.85+0.25*Math.sin(i*1.7)); const px=cx+Math.cos(ang)*rr; const py=cy+Math.sin(ang)*rr; if(i===0) ctx.moveTo(px,py); else ctx.quadraticCurveTo(cx,cy,px,py);} ctx.closePath(); }
+function drawStatus(ctx,text,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='800 160px system-ui, -apple-system, Segoe UI, Roboto'; ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6; ctx.fillStyle=color; ctx.fillText(text,0,0); ctx.restore(); }
+function wrapText(ctx,text,x,y,maxW,lh,maxLines){ const wds=(text||'').split(/\s+/); let line=''; let lines=0; for(let i=0;i<wds.length;i++){ const test=line?line+' '+wds[i]:wds[i]; const w=ctx.measureText(test).width; if(w>maxW && i>0){ ctx.fillText(line,x,y); y+=lh; lines++; line=wds[i]; if(lines>=maxLines-1) break; } else line=test; } ctx.fillText(line,x,y); }
+function drawBlurredImage(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,blurPx){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${Math.max(2,blurPx)}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return; } const tmp=document.createElement('canvas'); const tctx=tmp.getContext('2d'); const scale=Math.max(8,Math.floor(Math.min(dW,dH)/20)); const tw=Math.max(1,Math.floor(dW/scale)), th=Math.max(1,Math.floor(dH/scale)); tmp.width=tw; tmp.height=th; tctx.imageSmoothingEnabled=true; tctx.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); ctx.globalAlpha=0.12; for(let i=0;i<8;i++){ const off=(i+1)*1.5; ctx.drawImage(tmp,0,0,tw,th,dx-off,dy,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx+off,dy,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx,dy-off,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx,dy+off,dW,dH);} ctx.globalAlpha=1; }
+
+// ====== Render ======
+async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,ribbonText,primary,ribbon,logoUrl,photoUrl,focusX,focusY,focusOff} = data; const {w:hW,h:hH}= {w:PRESETS[preset].w, h:PRESETS[preset].h}; const outW=hW, outH=hH; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; const bg='#FFFFFF', fg='#111827', sub='#4B5563'; ctx.clearRect(0,0,outW,outH); ctx.fillStyle=bg; ctx.fillRect(0,0,outW,outH);
+  const M=48; const photoH=Math.round(outH*(preset==='story'?0.56: preset==='portrait'?0.52:0.56)); const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
+  if(photoUrl){ const img=await loadImage(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip(); drawBlurredImage(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,26); const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focusOff); const rx=(photoRect.w/2)*focusX; const ry=(photoRect.h/2)*focusY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+160); g.addColorStop(0,'rgba(0,0,0,0.35)'); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,Math.min(photoRect.h,160)); ctx.restore(); }
+  else { ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip(); const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#E5E7EB'); g.addColorStop(1,'#F3F4F6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); }
+  const topPad=24; if(logoUrl){ const logo=await loadImage(logoUrl); const maxW=220,maxH=72; const fit=Math.min(maxW/logo.naturalWidth,maxH/logo.naturalHeight,1); const lw=Math.round(logo.naturalWidth*fit), lh=Math.round(logo.naturalHeight*fit); const lx=photoRect.x+topPad, ly=photoRect.y+topPad; ctx.save(); ctx.globalAlpha=0.96; drawRoundRect(ctx,lx-16,ly-12,lw+32,lh+24,14); ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.fill(); ctx.globalAlpha=1; ctx.drawImage(logo,lx,ly,lw,lh); ctx.restore(); } else { const lx=photoRect.x+topPad, ly=photoRect.y+topPad, s=72; ctx.save(); drawRoundRect(ctx,lx-12,ly-12,s+24,s+24,14); ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.fill(); ctx.fillStyle=primary; ctx.font='800 56px system-ui, -apple-system, Segoe UI, Roboto'; ctx.textBaseline='top'; ctx.fillText('AD',lx+6,ly+2); ctx.restore(); }
+  const price=formatPriceEUR(vehicle.price); if(price){ const pw=360, ph=160, px=photoRect.x+photoRect.w-pw-16, py=photoRect.y+photoRect.h-ph-16; ctx.save(); drawPaintBlob(ctx,px,py,pw,ph); ctx.fillStyle=primary; ctx.fill(); ctx.fillStyle='#111827'; ctx.font='900 56px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillText(price,px+36,py+ph/2+18); ctx.restore(); }
+  const titleY=photoRect.y+photoRect.h+48; ctx.fillStyle=fg; ctx.font='800 64px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillText(`${vehicle.make} ${vehicle.model}`.trim(), M, titleY);
+  const subY1=titleY+48; ctx.fillStyle=sub; ctx.font='600 36px system-ui, -apple-system, Segoe UI, Roboto'; wrapText(ctx, vehicle.version, M, subY1, outW-2*M, 40, 2);
+  const subY2=subY1+48; ctx.font='500 34px system-ui, -apple-system, Segoe UI, Roboto'; wrapText(ctx, vehicle.features.split('/').join('/'), M, subY2, outW-2*M, 38, 2);
+  const specsY=subY2+58; ctx.fillStyle=sub; ctx.font='600 34px system-ui, -apple-system, Segoe UI, Roboto'; const specs=`📅 ${vehicle.year}   •   ⚙️ ${vehicle.gearbox}   •   ⛽️ ${vehicle.fuel}   •   🐎 ${vehicle.power} ch   •   🧭 ${formatKm(vehicle.mileage)}`; wrapText(ctx, specs, M, specsY, outW-2*M, 38, 2);
+  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, specsY + 42); ctx.lineTo(outW-M, specsY + 42); ctx.stroke();
+  const footerY=outH-120; ctx.fillStyle=sub; ctx.font='700 34px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillText(data.dealerName, M, footerY); const phone=`☎️ ${vehicle.phone}`; const tw=ctx.measureText(phone).width; ctx.fillText(phone, outW-M-tw, footerY);
+  const RH=64; ctx.fillStyle=ribbon; ctx.fillRect(0, outH-RH, outW, RH); ctx.fillStyle='#111827'; ctx.font='800 28px system-ui, -apple-system, Segoe UI, Roboto'; const rw=ctx.measureText(ribbonText).width; ctx.fillText(ribbonText, Math.max(M,(outW-rw)/2), outH-RH/2+10);
+  if(data.status!=='aucun') drawStatus(ctx, data.status, photoRect, primary);
 }
 
-// ========================= Rendu Canvas (layout FIXE) =========================
+function loadImage(url){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
 
-interface RenderInput {
-  preset: Preset;
-  vehicle: VehicleData;
-  dealerName: string;
-  ribbonText: string;
-  theme: ThemeDef;
-  logoUrl: string | null;
-  photoUrl: string | null;
-  focus: { scaleX: number; scaleY: number; offsetY: number };
-  status: "aucun" | "RÉSERVÉ" | "VENDU";
+function makeCaption(v, dealer){ return [ `${v.make} ${v.model} ${v.year}`, v.version, v.features.split('/').join(' • '), `📍 ${v.city}`, `💶 ${formatPriceEUR(v.price)}`, `🧭 ${formatKm(v.mileage)} • ⛽️ ${v.fuel} • ⚙️ ${v.gearbox} • 🐎 ${v.power} ch`, `☎️ ${v.phone}`, dealer, '', '#voiture #occasion #garage #instacar #venteauto #caroftheday' ].filter(Boolean).join('\n'); }
+
+// ====== State + bindings ======
+const state={ preset:'portrait', primary:'#E30613', ribbon:'#001E62', status:'aucun', focusX:0.78, focusY:0.55, focusOff:0.02, dealerName: $('dealer').value, ribbonText: $('ribbon').value, vehicle: { make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, city:$('city').value, phone:$('phone').value } };
+
+function bind(){ const map=[ ['make','vehicle.make'], ['model','vehicle.model'], ['version','vehicle.version'], ['features','vehicle.features'], ['year','vehicle.year'], ['gearbox','vehicle.gearbox'], ['fuel','vehicle.fuel'], ['power','vehicle.power'], ['mileage','vehicle.mileage'], ['price','vehicle.price'], ['city','vehicle.city'], ['phone','vehicle.phone'], ['dealer','dealerName'], ['ribbon','ribbonText'] ]; map.forEach(([id,path])=>{ $(id).addEventListener('input', ()=>{ set(path, $(id).value); schedule(); }); }); $('preset').addEventListener('change', ()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change', ()=>{ state.status=$('status').value; schedule(); }); $('accent').addEventListener('input', ()=>{ state.primary=$('accent').value; schedule(); }); $('ribbonColor').addEventListener('input', ()=>{ state.ribbon=$('ribbonColor').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input', ()=>{ state[id]=$('#'+id).value*1; schedule(); }));
+  $('logoFile').addEventListener('change', (e)=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); });
+  const pickPhoto=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); };
+  $('photoFile').addEventListener('change', pickPhoto);
+  $('photoCam').addEventListener('change', pickPhoto);
+  $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); const dims=PRESETS[state.preset]; await renderSheet(c, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ios=/iPad|iPhone|iPod/.test(navigator.userAgent); c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); if(ios) window.open(url,'_blank'); else { const a=document.createElement('a'); const fn=`${state.vehicle.make}-${state.vehicle.model}-${state.vehicle.year}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(()=>URL.revokeObjectURL(url),1500); },'image/png'); });
+  $('btnCopy').addEventListener('click', ()=>{ navigator.clipboard.writeText(makeCaption(state.vehicle, state.dealerName)); });
 }
 
-async function renderSheet(canvas: HTMLCanvasElement, data: RenderInput) {
-  const { preset, vehicle, dealerName, ribbonText, theme, logoUrl, photoUrl, focus, status } = data;
-  const { w: outW, h: outH } = PRESETS[preset];
-  const ctx = canvas.getContext("2d"); if (!ctx) return;
+function set(path, val){ const parts=path.split('.'); let cur=state; for(let i=0;i<parts.length-1;i++) cur=cur[parts[i]]; cur[parts[parts.length-1]]=val; }
 
-  // Fond
-  ctx.clearRect(0, 0, outW, outH); ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, outW, outH);
+let raf=null; function schedule(){ if(raf) cancelAnimationFrame(raf); raf=requestAnimationFrame(drawPreview); }
+async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
 
-  // Constantes de layout FIXE
-  const M = 48; // marge
-  const photoH = Math.round(outH * (preset === "story" ? 0.56 : preset === "portrait" ? 0.52 : 0.56));
-  const photoRect = { x: M, y: M, w: outW - 2 * M, h: photoH };
-
-  // PHOTO (flou + ellipse nette)
-  if (photoUrl) {
-    const img = await loadImage(photoUrl);
-    const { sx, sy, sW, sH } = fitCover(img.naturalWidth, img.naturalHeight, photoRect.w, photoRect.h);
-    ctx.save(); drawRoundRect(ctx, photoRect.x, photoRect.y, photoRect.w, photoRect.h, 28); ctx.clip();
-    drawBlurredImage(ctx, img, sx, sy, sW, sH, photoRect.x, photoRect.y, photoRect.w, photoRect.h, 26);
-    const cx = photoRect.x + photoRect.w / 2; const cy = photoRect.y + photoRect.h * (0.5 + focus.offsetY);
-    const rx = (photoRect.w / 2) * focus.scaleX; const ry = (photoRect.h / 2) * focus.scaleY;
-    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.clip();
-    ctx.drawImage(img, sx, sy, sW, sH, photoRect.x, photoRect.y, photoRect.w, photoRect.h); ctx.restore();
-    const gg = ctx.createLinearGradient(0, photoRect.y, 0, photoRect.y + 160); gg.addColorStop(0, theme.textDark ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.15)"); gg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = gg; ctx.fillRect(photoRect.x, photoRect.y, photoRect.w, Math.min(photoRect.h, 160));
-    ctx.restore();
-  } else {
-    ctx.save(); drawRoundRect(ctx, photoRect.x, photoRect.y, photoRect.w, photoRect.h, 28); ctx.clip(); const g = ctx.createLinearGradient(0, photoRect.y, 0, photoRect.y + photoRect.h); g.addColorStop(0, "#E5E7EB"); g.addColorStop(1, "#F3F4F6"); ctx.fillStyle = g; ctx.fillRect(photoRect.x, photoRect.y, photoRect.w, photoRect.h); ctx.restore();
-  }
-
-  // LOGO (fixe)
-  const logoPad = 24;
-  if (logoUrl) {
-    try { const logo = await loadImage(logoUrl); const maxW = 220, maxH = 72; const fit = Math.min(maxW / logo.naturalWidth, maxH / logo.naturalHeight, 1); const lw = Math.round(logo.naturalWidth * fit); const lh = Math.round(logo.naturalHeight * fit); const lx = photoRect.x + logoPad; const ly = photoRect.y + logoPad; ctx.save(); ctx.globalAlpha = 0.96; drawRoundRect(ctx, lx - 16, ly - 12, lw + 32, lh + 24, 14); ctx.fillStyle = theme.textDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.35)"; ctx.fill(); ctx.globalAlpha = 1; ctx.drawImage(logo, lx, ly, lw, lh); ctx.restore(); } catch {}
-  } else {
-    const lx = photoRect.x + logoPad; const ly = photoRect.y + logoPad; const s = 72; ctx.save(); drawRoundRect(ctx, lx - 12, ly - 12, s + 24, s + 24, 14); ctx.fillStyle = theme.textDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.35)"; ctx.fill(); ctx.fillStyle = theme.primary; ctx.font = "800 56px Inter, ui-sans-serif, system-ui"; ctx.textBaseline = "top"; ctx.fillText("AD", lx + 6, ly + 2); ctx.restore();
-  }
-
-  // STATUT
-  if (status !== "aucun") drawStatus(ctx, status, photoRect, theme.primary);
-
-  // PRIX (fixe)
-  const price = formatPriceEUR(vehicle.price);
-  if (price) { const pw = 360, ph = 160; const px = photoRect.x + photoRect.w - pw - 16; const py = photoRect.y + photoRect.h - ph - 16; ctx.save(); drawPaintBlob(ctx, px, py, pw, ph); ctx.fillStyle = theme.primary; ctx.fill(); ctx.fillStyle = "#111827"; ctx.font = "900 56px Inter, ui-sans-serif, system-ui"; ctx.fillText(price, px + 36, py + ph / 2 + 18); ctx.restore(); }
-
-  // TITRES & INFOS (fixe)
-  const titleY = photoRect.y + photoRect.h + 48; ctx.fillStyle = theme.fg; ctx.font = "800 64px Inter, ui-sans-serif, system-ui"; ctx.fillText(`${vehicle.make} ${vehicle.model}`.trim(), M, titleY);
-  const subY1 = titleY + 48; ctx.fillStyle = theme.sub; ctx.font = "600 36px Inter, ui-sans-serif, system-ui"; wrapText(ctx, vehicle.version, M, subY1, outW - 2 * M, 40, 2);
-  const subY2 = subY1 + 48; ctx.font = "500 34px Inter, ui-sans-serif, system-ui"; wrapText(ctx, vehicle.features.split("/").join("/"), M, subY2, outW - 2 * M, 38, 2);
-  const specsY = subY2 + 58; ctx.fillStyle = theme.sub; ctx.font = "600 34px Inter, ui-sans-serif, system-ui"; const specs = `📅 ${vehicle.year}   •   ⚙️ ${vehicle.gearbox}   •   ⛽️ ${vehicle.fuel}   •   🐎 ${vehicle.power} ch   •   🧭 ${formatKm(vehicle.mileage)}`; wrapText(ctx, specs, M, specsY, outW - 2 * M, 38, 2);
-
-  // Divider
-  ctx.strokeStyle = theme.textDark ? "#E5E7EB" : "#1F2937"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(M, specsY + 18 + 24); ctx.lineTo(outW - M, specsY + 18 + 24); ctx.stroke();
-
-  // Footer
-  const footerY = outH - 120; ctx.fillStyle = theme.sub; ctx.font = "700 34px Inter, ui-sans-serif, system-ui"; ctx.fillText(dealerName, M, footerY);
-  const phone = `☎️ ${vehicle.phone}`; const tw = ctx.measureText(phone).width; ctx.fillText(phone, outW - M - tw, footerY);
-
-  // Ruban bas
-  const RH = 64; ctx.fillStyle = theme.ribbonBg; ctx.fillRect(0, outH - RH, outW, RH); ctx.fillStyle = "#111827"; ctx.font = "800 28px Inter, ui-sans-serif, system-ui"; const rw = ctx.measureText(ribbonText).width; ctx.fillText(ribbonText, Math.max(M, (outW - rw) / 2), outH - RH / 2 + 10);
-}
-
-// ========================= UI components =========================
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="border rounded-2xl p-4 bg-white/60" style={{ borderColor: "#E5E7EB" }}>
-      <div className="font-semibold mb-3">{title}</div>
-      {children}
-    </section>
-  );
-}
-
-function Input({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <label className="text-sm">
-      <div className="mb-1" style={{ color: "#6B7280" }}>{label}</div>
-      <input className="w-full border rounded-xl px-3 py-2" value={value} onChange={(e) => onChange(e.target.value)} />
-    </label>
-  );
-}
-
-function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: {label:string;value:string}[] }) {
-  return (
-    <label className="text-sm">
-      <div className="mb-1" style={{ color: "#6B7280" }}>{label}</div>
-      <select className="w-full border rounded-xl px-3 py-2 bg-white" value={value} onChange={(e) => onChange(e.target.value)}>
-        {options.map((o) => (<option key={o.value} value={o.value}>{o.label}</option>))}
-      </select>
-    </label>
-  );
-}
-
-function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <label className="text-sm flex items-center gap-3">
-      <span className="min-w-[9rem]" style={{ color: "#6B7280" }}>{label}</span>
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
-      <input className="flex-1 border rounded-xl px-3 py-2" value={value} onChange={(e) => onChange(e.target.value)} />
-    </label>
-  );
-}
-
-function Slider({ label, value, setValue, min, max, step }: { label: string; value: number; setValue: (n: number) => void; min: number; max: number; step: number }) {
-  return (
-    <label className="text-sm">
-      <div className="mb-1" style={{ color: "#6B7280" }}>{label}</div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => setValue(parseFloat(e.target.value))} className="w-full" />
-    </label>
-  );
-}
-
-function FileButton({ label, accept, onPick, capture }: { label: string; accept: string; onPick: (f?: File) => void; capture?: boolean }) {
-  return (
-    <label className="px-3 py-2 rounded-2xl border cursor-pointer bg-white">
-      {label}
-      <input type="file" accept={accept} className="hidden" {...(capture ? ({ capture: "environment" } as any) : {})} onChange={(e) => onPick(e.target.files?.[0])} />
-    </label>
-  );
-}
-
-// Theme editor helper (keeps index stable, mutates current theme object for UI only)
-function updateTheme(idx: number, patch: Partial<ThemeDef>) {
-  THEMES[idx] = { ...THEMES[idx], ...patch };
-}
+bind(); schedule();
+</script>
+</body>
+</html>
