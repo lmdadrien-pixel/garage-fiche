@@ -5,13 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fiche véhicule Instagram – AD</title>
   <style>
-    :root{
-      --bg:#ffffff; --fg:#111827; --sub:#6b7280;
-      --primary:#E30613; /* AD rouge */
-      --ribbon:#001E62;  /* AD bleu */
-    }
+    :root{ --bg:#ffffff; --fg:#111827; --sub:#6b7280; --primary:#E30613; }
     *{box-sizing:border-box}
-    body{margin:0;font:16px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, "Helvetica Neue", Arial, system-ui; color:var(--fg); background:var(--bg)}
+    body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,system-ui; color:var(--fg); background:var(--bg)}
     .wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:400px 1fr;gap:24px}
     @media(max-width:980px){.wrap{grid-template-columns:1fr}}
     h1{margin:0 0 12px;font-size:24px}
@@ -45,7 +41,7 @@
             <input id="logoFile" type="file" accept="image/*,.svg" />
           </label>
         </div>
-        <div class="small" style="margin-top:6px">Sans logo ⇒ monogramme "AD" auto</div>
+        <div class="small" style="margin-top:6px">Sans logo ⇒ carré rouge "AD" blanc (style AD)</div>
         <div class="row3" style="margin-top:12px">
           <div>
             <label class="txt">Focus largeur</label>
@@ -105,10 +101,6 @@
             <input id="phone" type="text" value="06 16 13 15 89" />
           </div>
           <div>
-            <label class="txt">Ville</label>
-            <input id="city" type="text" value="Brive-la-Gaillarde" />
-          </div>
-          <div>
             <label class="txt">Prix (€)</label>
             <input id="price" type="text" value="9990" />
           </div>
@@ -120,18 +112,10 @@
           <label class="txt">Nom garage</label>
           <input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" />
         </div>
-        <div style="margin-top:8px">
-          <label class="txt">Texte ruban bas</label>
-          <input id="ribbon" type="text" value="Garantie 6 mois  •  En stock  •  Livraison  •  Financement  •  Reprise" />
-        </div>
         <div class="row3" style="margin-top:12px">
           <div>
             <label class="txt">Couleur accent</label>
             <input id="accent" type="color" value="#E30613" />
-          </div>
-          <div>
-            <label class="txt">Couleur ruban</label>
-            <input id="ribbonColor" type="color" value="#001E62" />
           </div>
           <div>
             <label class="txt">Statut</label>
@@ -141,8 +125,6 @@
               <option value="VENDU">VENDU</option>
             </select>
           </div>
-        </div>
-        <div class="row3" style="margin-top:12px">
           <div>
             <label class="txt">Format</label>
             <select id="preset">
@@ -151,12 +133,10 @@
               <option value="story">Story 1080×1920</option>
             </select>
           </div>
-          <div class="actions" style="align-items:end">
-            <button id="btnGen" class="btn">Générer la fiche (PNG)</button>
-          </div>
-          <div class="actions" style="align-items:end">
-            <button id="btnCopy" class="btn">Copier la légende</button>
-          </div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button id="btnGen" class="btn">Générer la fiche (PNG)</button>
+          <button id="btnCopy" class="btn">Copier la légende</button>
         </div>
       </section>
     </div>
@@ -170,183 +150,55 @@
 
 <script>
 // ====== Data & helpers ======
-const PRESETS = {
-  square:   { w:1080, h:1080, label:"Carré 1080×1080" },
-  portrait: { w:1080, h:1350, label:"Portrait 1080×1350" },
-  story:    { w:1080, h:1920, label:"Story 1080×1920" },
-};
+const PRESETS = { square:{w:1080,h:1080,label:"Carré 1080×1080"}, portrait:{w:1080,h:1350,label:"Portrait 1080×1350"}, story:{w:1080,h:1920,label:"Story 1080×1920"} };
 const fr = new Intl.NumberFormat('fr-FR');
-const $ = (id)=>document.getElementById(id);
-let logoURL = null; let photoURL = null;
+const $ = id => document.getElementById(id);
+let logoURL=null, photoURL=null;
 
-function formatPriceEUR(v){ const d=(v||'').replace(/[^0-9]/g,''); if(!d) return ''; return fr.format(Number(d))+"€"; }
-function formatKm(v){ const d=(v||'').replace(/[^0-9]/g,''); if(!d) return ''; return fr.format(Number(d))+" km"; }
-function fitCover(sw,sh,dw,dh){ const sr=sw/sh, dr=dw/dh; if(sr>dr){ const sH=sh; const sW=sH*dr; const sx=(sw-sW)/2; return {sx,sy:0,sW,sH}; } else { const sW=sw; const sH=sW/dr; const sy=(sh-sH)/2; return {sx:0,sy,sW,sH}; } }
+function formatPriceEUR(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(Number(d))+"€":""; }
+function formatKm(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(Number(d))+" km":""; }
+function fitCover(sw,sh,dw,dh){ const sr=sw/sh, dr=dw/dh; if(sr>dr){ const sH=sh, sW=sH*dr, sx=(sw-sW)/2; return {sx,sy:0,sW,sH}; } else { const sW=sw, sH=sW/dr, sy=(sh-sH)/2; return {sx:0,sy,sW,sH}; } }
 function drawRoundRect(ctx,x,y,w,h,r){ const rr=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); ctx.closePath(); }
 function drawPaintBlob(ctx,x,y,w,h){ const r=Math.min(w,h)/2, cx=x+w/2, cy=y+h/2; ctx.beginPath(); for(let i=0;i<14;i++){ const ang=(i/14)*Math.PI*2; const rr=r*(0.85+0.25*Math.sin(i*1.7)); const px=cx+Math.cos(ang)*rr; const py=cy+Math.sin(ang)*rr; if(i===0) ctx.moveTo(px,py); else ctx.quadraticCurveTo(cx,cy,px,py);} ctx.closePath(); }
-function drawStatus(ctx,text,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='800 160px system-ui, -apple-system, Segoe UI, Roboto'; ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6; ctx.fillStyle=color; ctx.fillText(text,0,0); ctx.restore(); }
+function drawStatus(ctx,text,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='800 160px system-ui,-apple-system,Segoe UI,Roboto'; ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6; ctx.fillStyle=color; ctx.fillText(text,0,0); ctx.restore(); }
 function wrapText(ctx,text,x,y,maxW,lh,maxLines){ const wds=(text||'').split(/\s+/); let line=''; let lines=0; for(let i=0;i<wds.length;i++){ const test=line?line+' '+wds[i]:wds[i]; const w=ctx.measureText(test).width; if(w>maxW && i>0){ ctx.fillText(line,x,y); y+=lh; lines++; line=wds[i]; if(lines>=maxLines-1) break; } else line=test; } ctx.fillText(line,x,y); }
-function drawBlurredImage(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,blurPx){
-  const any=ctx;
-  if(typeof any.filter==='string'){
-    const prev=any.filter; any.filter=`blur(${Math.max(2,blurPx)}px)`;
-    ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return;
-  }
-  const tmp=document.createElement('canvas'); const tctx=tmp.getContext('2d');
-  const scale=Math.max(8,Math.floor(Math.min(dW,dH)/20));
-  const tw=Math.max(1,Math.floor(dW/scale)), th=Math.max(1,Math.floor(dH/scale));
-  tmp.width=tw; tmp.height=th; tctx.imageSmoothingEnabled=true;
-  tctx.drawImage(img,sx,sy,sW,sH,0,0,tw,th);
-  ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH);
-  ctx.globalAlpha=0.12; for(let i=0;i<8;i++){ const off=(i+1)*1.5;
-    ctx.drawImage(tmp,0,0,tw,th,dx-off,dy,dW,dH);
-    ctx.drawImage(tmp,0,0,tw,th,dx+off,dy,dW,dH);
-    ctx.drawImage(tmp,0,0,tw,th,dx,dy-off,dW,dH);
-    ctx.drawImage(tmp,0,0,tw,th,dx,dy+off,dW,dH);
-  }
-  ctx.globalAlpha=1;
-}
+function drawBlurredImage(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,blurPx){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${Math.max(2,blurPx)}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return; } const tmp=document.createElement('canvas'); const tctx=tmp.getContext('2d'); const scale=Math.max(8,Math.floor(Math.min(dW,dH)/20)); const tw=Math.max(1,Math.floor(dW/scale)), th=Math.max(1,Math.floor(dH/scale)); tmp.width=tw; tmp.height=th; tctx.imageSmoothingEnabled=true; tctx.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); ctx.globalAlpha=0.12; for(let i=0;i<8;i++){ const off=(i+1)*1.5; ctx.drawImage(tmp,0,0,tw,th,dx-off,dy,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx+off,dy,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx,dy-off,dW,dH); ctx.drawImage(tmp,0,0,tw,th,dx,dy+off,dW,dH);} ctx.globalAlpha=1; }
 function loadImage(url){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
 
-// ====== Render ======
-async function renderSheet(canvas, data){
-  const {preset,vehicle,dealerName,ribbonText,primary,ribbon,logoUrl,photoUrl,focusX,focusY,focusOff,status} = data;
-  const outW = PRESETS[preset].w, outH = PRESETS[preset].h;
-  const ctx=canvas.getContext('2d');
-  canvas.width=outW; canvas.height=outH;
-
-  const bg='#FFFFFF', fg='#111827', sub='#4B5563';
-  ctx.clearRect(0,0,outW,outH); ctx.fillStyle=bg; ctx.fillRect(0,0,outW,outH);
-
-  const M=48; const photoH=Math.round(outH*(preset==='story'?0.56: preset==='portrait'?0.52:0.56));
-  const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
-
-  if(photoUrl){
-    const img=await loadImage(photoUrl);
-    const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h);
-    ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip();
-    drawBlurredImage(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,26);
-    const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focusOff);
-    const rx=(photoRect.w/2)*focusX; const ry=(photoRect.h/2)*focusY;
-    ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip();
-    ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore();
-    const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+160); g.addColorStop(0,'rgba(0,0,0,0.35)'); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,Math.min(photoRect.h,160));
-    ctx.restore();
-  } else {
-    ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip(); const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#E5E7EB'); g.addColorStop(1,'#F3F4F6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore();
-  }
-
-  const topPad=24;
-  if(logoUrl){
-    const logo=await loadImage(logoUrl); const maxW=220,maxH=72; const fit=Math.min(maxW/logo.naturalWidth,maxH/logo.naturalHeight,1);
-    const lw=Math.round(logo.naturalWidth*fit), lh=Math.round(logo.naturalHeight*fit);
-    const lx=photoRect.x+topPad, ly=photoRect.y+topPad;
-    ctx.save(); ctx.globalAlpha=0.96; drawRoundRect(ctx,lx-16,ly-12,lw+32,lh+24,14); ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.fill(); ctx.globalAlpha=1; ctx.drawImage(logo,lx,ly,lw,lh); ctx.restore();
-  } else {
-    const lx=photoRect.x+topPad, ly=photoRect.y+topPad, s=72;
-    ctx.save(); drawRoundRect(ctx,lx-12,ly-12,s+24,s+24,14); ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.fill();
-    ctx.fillStyle=primary; ctx.font='800 56px system-ui, -apple-system, Segoe UI, Roboto'; ctx.textBaseline='top'; ctx.fillText('AD',lx+6,ly+2); ctx.restore();
-  }
-
-  const price=formatPriceEUR(vehicle.price);
-  if(price){ const pw=360, ph=160, px=photoRect.x+photoRect.w-pw-16, py=photoRect.y+photoRect.h-ph-16; ctx.save(); drawPaintBlob(ctx,px,py,pw,ph); ctx.fillStyle=primary; ctx.fill(); ctx.fillStyle='#111827'; ctx.font='900 56px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillText(price,px+36,py+ph/2+18); ctx.restore(); }
-
-  const titleY=photoRect.y+photoRect.h+48; ctx.fillStyle=fg; ctx.font='800 64px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillText(`${vehicle.make} ${vehicle.model}`.trim(), M, titleY);
-
-  const subY1=titleY+48; ctx.fillStyle=sub; ctx.font='600 36px system-ui, -apple-system, Segoe UI, Roboto'; wrapText(ctx, vehicle.version, M, subY1, outW-2*M, 40, 2);
-  const subY2=subY1+48; ctx.font='500 34px system-ui, -apple-system, Segoe UI, Roboto'; wrapText(ctx, vehicle.features.split('/').join('/'), M, subY2, outW-2*M, 38, 2);
-
-  const specsY=subY2+58; ctx.fillStyle=sub; ctx.font='600 34px system-ui, -apple-system, Segoe UI, Roboto';
-  const specs=`📅 ${vehicle.year}   •   ⚙️ ${vehicle.gearbox}   •   ⛽️ ${vehicle.fuel}   •   🐎 ${vehicle.power} ch   •   🧭 ${formatKm(vehicle.mileage)}`;
-  wrapText(ctx, specs, M, specsY, outW-2*M, 38, 2);
-
-  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, specsY + 42); ctx.lineTo(outW-M, specsY + 42); ctx.stroke();
-
-  const footerY=outH-120; ctx.fillStyle=sub; ctx.font='700 34px system-ui, -apple-system, Segoe UI, Roboto'; ctx.fillText(data.dealerName, M, footerY);
-  const phone=`☎️ ${vehicle.phone}`; const tw=ctx.measureText(phone).width; ctx.fillText(phone, outW-M-tw, footerY);
-
-  const RH=64; ctx.fillStyle=ribbon; ctx.fillRect(0, outH-RH, outW, RH); ctx.fillStyle='#111827'; ctx.font='800 28px system-ui, -apple-system, Segoe UI, Roboto'; const rw=ctx.measureText(ribbonText).width; ctx.fillText(ribbonText, Math.max(M,(outW-rw)/2), outH-RH/2+10);
-
+// ====== Render (layout fixe) ======
+async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,primary,logoUrl,photoUrl,focusX,focusY,focusOff,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; const bg='#FFFFFF', fg='#111827', sub='#4B5563'; ctx.clearRect(0,0,outW,outH); ctx.fillStyle=bg; ctx.fillRect(0,0,outW,outH);
+  const M=48; const photoH=Math.round(outH*(preset==='story'?0.56:preset==='portrait'?0.52:0.56)); const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
+  if(photoUrl){ const img=await loadImage(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip(); drawBlurredImage(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,26); const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focusOff); const rx=(photoRect.w/2)*focusX; const ry=(photoRect.h/2)*focusY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+160); g.addColorStop(0,'rgba(0,0,0,0.35)'); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,Math.min(photoRect.h,160)); ctx.restore(); }
+  else { ctx.save(); drawRoundRect(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip(); const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#E5E7EB'); g.addColorStop(1,'#F3F4F6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); }
+  const pad=24; if(logoUrl){ const logo=await loadImage(logoUrl); const maxW=220,maxH=72; const fit=Math.min(maxW/logo.naturalWidth,maxH/logo.naturalHeight,1); const lw=Math.round(logo.naturalWidth*fit), lh=Math.round(logo.naturalHeight*fit); const lx=photoRect.x+pad, ly=photoRect.y+pad; ctx.save(); ctx.globalAlpha=1; drawRoundRect(ctx,lx-16,ly-12,lw+32,lh+24,14); ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fill(); ctx.drawImage(logo,lx,ly,lw,lh); ctx.restore(); } else { const lx=photoRect.x+pad, ly=photoRect.y+pad, s=72; ctx.save(); drawRoundRect(ctx,lx-8,ly-8,s+16,s+16,12); ctx.fillStyle=primary; ctx.fill(); ctx.fillStyle='#FFFFFF'; ctx.font='800 52px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='top'; ctx.fillText('AD', lx+10, ly+4); ctx.restore(); }
   if(status!=='aucun') drawStatus(ctx, status, photoRect, primary);
+  const price=formatPriceEUR(vehicle.price); if(price){ const pw=360, ph=160, px=photoRect.x+photoRect.w-pw-16, py=photoRect.y+photoRect.h-ph-16; ctx.save(); drawPaintBlob(ctx,px,py,pw,ph); ctx.fillStyle=primary; ctx.fill(); ctx.fillStyle='#111827'; ctx.font='900 56px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(price, px+36, py+ph/2+18); ctx.restore(); }
+  const titleY=photoRect.y+photoRect.h+48; ctx.fillStyle=fg; ctx.font='800 64px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(`${vehicle.make} ${vehicle.model}`.trim(), M, titleY);
+  const subY1=titleY+48; ctx.fillStyle=sub; ctx.font='600 36px system-ui,-apple-system,Segoe UI,Roboto'; wrapText(ctx, vehicle.version, M, subY1, outW-2*M, 40, 2);
+  const subY2=subY1+48; ctx.font='500 34px system-ui,-apple-system,Segoe UI,Roboto'; wrapText(ctx, vehicle.features.split('/').join('/'), M, subY2, outW-2*M, 38, 2);
+  const specsY=subY2+58; ctx.fillStyle=sub; ctx.font='700 34px system-ui,-apple-system,Segoe UI,Roboto'; const specs=`${vehicle.year}  •  ${vehicle.gearbox}  •  ${vehicle.fuel}  •  ${vehicle.power} ch  •  ${formatKm(vehicle.mileage)}`; wrapText(ctx, specs, M, specsY, outW-2*M, 38, 2);
+  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, specsY + 42); ctx.lineTo(outW-M, specsY + 42); ctx.stroke();
+  const footerY=outH-120; ctx.fillStyle=sub; ctx.font='800 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(dealerName, M, footerY);
+  const phone=`${vehicle.phone}`; const tw=ctx.measureText(phone).width; ctx.fillText(phone, outW-M-tw, footerY);
 }
 
-function makeCaption(v, dealer){
-  return [
-    `${v.make} ${v.model} ${v.year}`,
-    v.version,
-    v.features.split('/').join(' • '),
-    `📍 ${v.city}`,
-    `💶 ${formatPriceEUR(v.price)}`,
-    `🧭 ${formatKm(v.mileage)} • ⛽️ ${v.fuel} • ⚙️ ${v.gearbox} • 🐎 ${v.power} ch`,
-    `☎️ ${v.phone}`,
-    dealer,
-    '',
-    '#voiture #occasion #garage #instacar #venteauto #caroftheday'
-  ].filter(Boolean).join('\n');
-}
+function makeCaption(v, dealer){ return [ `${v.make} ${v.model} ${v.year}`, v.version, v.features.split('/').join(' • '), `💶 ${formatPriceEUR(v.price)}`, `🧭 ${formatKm(v.mileage)} • ⛽️ ${v.fuel} • ⚙️ ${v.gearbox} • 🐎 ${v.power} ch`, dealer ].filter(Boolean).join('\n'); }
 
 // ====== State + bindings ======
-const state={
-  preset:'portrait',
-  primary:'#E30613',
-  ribbon:'#001E62',
-  status:'aucun',
-  focusX:0.78, focusY:0.55, focusOff:0.02,
-  dealerName: $('dealer').value,
-  ribbonText: $('ribbon').value,
-  vehicle: {
-    make:$('make').value, model:$('model').value, version:$('version').value,
-    features:$('features').value, year:$('year').value, gearbox:$('gearbox').value,
-    fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value,
-    price:$('price').value, city:$('city').value, phone:$('phone').value
-  }
-};
+const state={ preset:'portrait', primary:'#E30613', status:'aucun', focusX:0.78, focusY:0.55, focusOff:0.02, dealerName: $('dealer').value, vehicle: { make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value } };
 
-function bind(){
-  const map=[
-    ['make','vehicle.make'], ['model','vehicle.model'], ['version','vehicle.version'],
-    ['features','vehicle.features'], ['year','vehicle.year'], ['gearbox','vehicle.gearbox'],
-    ['fuel','vehicle.fuel'], ['power','vehicle.power'], ['mileage','vehicle.mileage'],
-    ['price','vehicle.price'], ['city','vehicle.city'], ['phone','vehicle.phone'],
-    ['dealer','dealerName'], ['ribbon','ribbonText']
-  ];
-  map.forEach(([id,path])=>{ $(id).addEventListener('input', ()=>{ set(path, $(id).value); schedule(); }); });
-  $('preset').addEventListener('change', ()=>{ state.preset=$('preset').value; schedule(); });
-  $('status').addEventListener('change', ()=>{ state.status=$('status').value; schedule(); });
-  $('accent').addEventListener('input', ()=>{ state.primary=$('accent').value; schedule(); });
-  $('ribbonColor').addEventListener('input', ()=>{ state.ribbon=$('ribbonColor').value; schedule(); });
-  ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input', ()=>{ state[id]=$('#'+id).value*1; schedule(); }));
-
+function bind(){ const map=[ ['make','vehicle.make'], ['model','vehicle.model'], ['version','vehicle.version'], ['features','vehicle.features'], ['year','vehicle.year'], ['gearbox','vehicle.gearbox'], ['fuel','vehicle.fuel'], ['power','vehicle.power'], ['mileage','vehicle.mileage'], ['price','vehicle.price'], ['phone','vehicle.phone'], ['dealer','dealerName'] ]; map.forEach(([id,path])=>{ $(id).addEventListener('input', ()=>{ set(path, $(id).value); schedule(); }); }); $('preset').addEventListener('change', ()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change', ()=>{ state.status=$('status').value; schedule(); }); $('accent').addEventListener('input', ()=>{ state.primary=$('accent').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input', ()=>{ state[id]=$('#'+id).value*1; schedule(); }));
   $('logoFile').addEventListener('change', (e)=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); });
   const pickPhoto=(e)=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); };
-  $('photoFile').addEventListener('change', pickPhoto);
-  $('photoCam').addEventListener('change', pickPhoto);
-
-  $('btnGen').addEventListener('click', async ()=>{
-    const c=$('export'); const dims=PRESETS[state.preset];
-    await renderSheet(c, { ...state, primary:state.primary, ribbon:state.ribbon, logoUrl:logoURL, photoUrl:photoURL });
-    const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);
-    c.toBlob(b=>{
-      if(!b) return; const url=URL.createObjectURL(b);
-      if(ios) window.open(url,'_blank');
-      else { const a=document.createElement('a'); const fn=`${state.vehicle.make}-${state.vehicle.model}-${state.vehicle.year}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); }
-      setTimeout(()=>URL.revokeObjectURL(url),1500);
-    },'image/png');
-  });
+  $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto);
+  $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); const dims=PRESETS[state.preset]; await renderSheet(c, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ios=/iPad|iPhone|iPod/.test(navigator.userAgent); c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); if(ios) window.open(url,'_blank'); else { const a=document.createElement('a'); const fn=`${state.vehicle.make}-${state.vehicle.model}-${state.vehicle.year}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(()=>URL.revokeObjectURL(url),1500); },'image/png'); });
   $('btnCopy').addEventListener('click', ()=>{ navigator.clipboard.writeText(makeCaption(state.vehicle, state.dealerName)); });
 }
 
 function set(path, val){ const parts=path.split('.'); let cur=state; for(let i=0;i<parts.length-1;i++) cur=cur[parts[i]]; cur[parts[parts.length-1]]=val; }
 
 let raf=null; function schedule(){ if(raf) cancelAnimationFrame(raf); raf=requestAnimationFrame(drawPreview); }
-async function drawPreview(){
-  const c=$('preview'); const dims=PRESETS[state.preset];
-  $('previewLabel').textContent='Prévisualisation ('+dims.label+')';
-  const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio);
-  const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h;
-  await renderSheet(off, { ...state, primary:state.primary, ribbon:state.ribbon, logoUrl:logoURL, photoUrl:photoURL });
-  const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height);
-}
+async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { ...state, logoUrl:logoURL, photoUrl:photoURL }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
 
 bind(); schedule();
 </script>
