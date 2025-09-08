@@ -14,6 +14,7 @@
     section{border:1px solid var(--muted);border-radius:16px;padding:16px;background:#fff}
     label.txt{display:block;font-size:13px;margin-bottom:8px;color:var(--sub)}
     input[type="text"],select{width:100%;padding:10px 12px;border:1px solid var(--muted);border-radius:12px}
+    input[disabled]{background:#f8fafc;color:#64748b}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
     .btn{border:1px solid var(--muted);border-radius:16px;padding:10px 14px;background:#fff;cursor:pointer}
@@ -42,7 +43,7 @@
             <input id="logoFile" type="file" accept="image/*,.svg" />
           </label>
         </div>
-        <div class="small" style="margin-top:6px">Par défaut : <b>AD Expert</b> intégré ci‑dessous (remplaçable via le bouton).</div>
+        <div class="small" style="margin-top:6px">Logo par défaut : <b>AD Expert</b> (intégré). Tu peux le remplacer via le bouton si besoin.</div>
       </section>
 
       <section>
@@ -62,7 +63,7 @@
       </section>
 
       <section>
-        <div><label class="txt">Nom garage</label><input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" /></div>
+        <div><label class="txt">Nom garage (fixe)</label><input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" disabled /></div>
         <div class="row3" style="margin-top:12px">
           <div><label class="txt">Statut</label><select id="status"><option value="aucun">aucun</option><option value="RÉSERVÉ">RÉSERVÉ</option><option value="VENDU">VENDU</option></select></div>
           <div><label class="txt">Format</label><select id="preset"><option value="portrait">Portrait 1080×1350</option><option value="square">Carré 1080×1080</option><option value="story">Story 1080×1920</option></select></div>
@@ -84,14 +85,15 @@
           <div><label class="txt">Focus hauteur</label><input id="focusY" type="range" min="0.45" max="1.1" step="0.01" value="0.60" /></div>
           <div><label class="txt">Position verticale</label><input id="focusOff" type="range" min="-0.25" max="0.25" step="0.005" value="0.00" /></div>
         </div>
-        <div class="small" style="margin-top:6px">iPhone : la barre reste en bas, l’aperçu se met à jour <b>en direct</b> lorsque tu glisses.</div>
+        <div class="small" style="margin-top:6px">iPhone : la barre reste en bas, l’aperçu se met à jour <b>en direct</b>.</div>
       </section>
     </div>
   </div>
 
 <script>
 /* ====== Logo AD Expert intégré (base64) ====== */
-const DEFAULT_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEkCAYAAAAB5GevAAAQAElEQVR4Aey9CZwdVbXvv6jKqZChQ9KJJgwmLZgAElDAK2kU4lQqkq7r4y3cQhS2r3n1jvQvG0c9xJzFhF0S3pQkqkX3/0m6VnJm9..."; // remplacé dans le vrai fichier (canvas) par la version complète
+const DEFAULT_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeoAAAGCCAYAAAAvyoANAAAQAElEQVR4Aez9B5hkx3UmiP4n7k1fvqqrvffd8ABB0IASnURSI5IiA..."; // remplacé plus bas
+const DEALER_NAME = "GARAGE LAUMOND – Lanteuil • Meyssac • Argentat";
 
 /* ====== Consts & helpers ====== */
 const PRESETS = { square:{w:1080,h:1080,label:"Carré 1080×1080"}, portrait:{w:1080,h:1350,label:"Portrait 1080×1350"}, story:{w:1080,h:1920,label:"Story 1080×1920"} };
@@ -132,7 +134,7 @@ function drawPriceBadge(ctx, x, y, w, h, text){
 }
 
 /* ====== Render ====== */
-async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,logoUrl,photoUrl,focus,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; ctx.clearRect(0,0,outW,outH); ctx.fillStyle='#fff'; ctx.fillRect(0,0,outW,outH);
+async function renderSheet(canvas, data){ const {preset,vehicle,photoUrl,focus,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; ctx.clearRect(0,0,outW,outH); ctx.fillStyle='#fff'; ctx.fillRect(0,0,outW,outH);
   // Bordure fine bleue
   const B=8; ctx.strokeStyle=THEME.blue; ctx.lineWidth=B; ctx.strokeRect(B/2+16, B/2+16, outW-B-32, outH-B-32);
   // Zone photo
@@ -142,40 +144,65 @@ async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,logoU
   // Panneau logo + garage (centré verticalement)
   const pad=22; const lx=photoRect.x+pad, ly=photoRect.y+pad; const panelW=Math.min(720, photoRect.w-2*pad); const panelH=64;
   ctx.save(); rr(ctx,lx-14,ly-10,panelW, panelH, 16); ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill();
-  let textX = lx + 72 + 14; let textY = ly + panelH/2; // défaut si fallback AD
-  try{ if(logoUrl){ const logo=await loadImage(logoUrl); const maxH=44; const f=maxH/logo.naturalHeight; const lw=Math.round(logo.naturalWidth*f), lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, lx, ly+(panelH-lh)/2, lw, lh); textX = lx + lw + 16; textY = ly + panelH/2; } else { drawADFallback(ctx,lx,ly+(panelH-56)/2); } }catch(e){ drawADFallback(ctx,lx,ly+(panelH-56)/2); }
-  ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(dealerName||$('dealer').value||'', textX, textY);
+  try{ const logo=await loadImage(logoURL); const maxH=44; const f=maxH/logo.naturalHeight; const lw=Math.round(logo.naturalWidth*f), lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, lx, ly+(panelH-lh)/2, lw, lh); ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(DEALER_NAME, lx+lw+16, ly+panelH/2); }catch(e){ ctx.fillStyle=THEME.red; ctx.font='900 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('AD', lx+8, ly+panelH/2); ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText(DEALER_NAME, lx+72+14, ly+panelH/2); }
   ctx.restore();
   // Badge prix moderne
   const p = price(vehicle.price); if(p){ const bw=320, bh=120; const bx = photoRect.x + photoRect.w - bw - 18; const by = photoRect.y + photoRect.h - bh - 18; drawPriceBadge(ctx, bx, by, bw, bh, p); }
   // Statut
   if(status!=='aucun') statusStamp(ctx,status,photoRect,THEME.red);
   // Titre & sous-titres (plus bas)
-  const titleY=photoRect.y+photoRect.h+96; ctx.fillStyle=THEME.fg; ctx.font='900 60px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('make').value+' '+$('model').value).toUpperCase(), M, titleY);
-  const vY=titleY+40; ctx.font='700 32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('version').value||'').toUpperCase(), M, vY);
-  const fY=vY+38; ctx.font='800 28px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('features').value||'').toUpperCase(), M, fY);
+  const titleY=photoRect.y+photoRect.h+96; ctx.fillStyle=THEME.fg; ctx.font='900 60px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText((vehicle.make+' '+vehicle.model).toUpperCase(), M, titleY);
+  const vY=titleY+40; ctx.font='700 32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText((vehicle.version||'').toUpperCase(), M, vY);
+  const fY=vY+38; ctx.font='800 28px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText((vehicle.features||'').toUpperCase(), M, fY);
   // Specs
-  const sY=fY+54; ctx.fillStyle=THEME.sub; ctx.font='700 28px system-ui,-apple-system,Segoe UI,Roboto'; const specs=[$('year').value, $('gearbox').value, $('fuel').value, ($('power').value||'')+' ch', kms($('mileage').value)].filter(Boolean).join('  •  '); ctx.fillText(specs, M, sY);
+  const sY=fY+54; ctx.fillStyle=THEME.sub; ctx.font='700 28px system-ui,-apple-system,Segoe UI,Roboto'; const specs=[vehicle.year, vehicle.gearbox, vehicle.fuel, (vehicle.power||'')+' ch', kms(vehicle.mileage)].filter(Boolean).join('  •  '); ctx.fillText(specs, M, sY);
   ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, sY+18); ctx.lineTo(outW-M, sY+18); ctx.stroke();
-  // Téléphone (plus haut)
-  const phoneY = outH - 260; const phoneTxt = $('phone').value||''; ctx.font='900 32px system-ui,-apple-system,Segoe UI,Roboto'; const tw=ctx.measureText(phoneTxt).width; const pw=tw+90, ph=56; const px=outW-M-pw, py=phoneY-ph/2; rr(ctx,px,py,pw,ph,28); ctx.fillStyle=THEME.blue; ctx.fill(); ctx.fillStyle='#fff'; ctx.fillText(phoneTxt, px+56, phoneY+12-12); ctx.beginPath(); ctx.arc(px+30, py+ph/2, 8, 0, Math.PI*2); ctx.fill();
-  // Bandeau bas (auto-fit sur une ligne)
-  const bandH = 72; const msg = 'Possibilité de reprise de votre véhicule   •   Recherche personnalisée : on trouve le modèle exact que vous cherchez'; ctx.fillStyle=THEME.blue; ctx.fillRect(0, outH-bandH, outW, bandH); ctx.fillStyle='#fff'; let size=28; const minS=18; const padX=36; do{ ctx.font=`800 ${size}px system-ui,-apple-system,Segoe UI,Roboto`; }while(ctx.measureText(msg).width>outW-2*padX && --size>=minS); const mw=ctx.measureText(msg).width; ctx.textBaseline='middle'; ctx.fillText(msg, (outW-mw)/2, outH-bandH/2+2);
-}
+  // Position commune bandeau/phone (montés)
+  const bandH = 72; // hauteur du bandeau
+  const bandOffset = 36; // distance depuis le bas (plus haut qu'avant)
+  const bandY = outH - bandH - bandOffset;
 
-function drawADFallback(ctx,x,y){ const s=56; ctx.save(); rr(ctx,x-6,y-4,s+12,s+8,10); ctx.fillStyle='#fff'; ctx.globalAlpha=0.95; ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle=THEME.red; ctx.font='900 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText('AD', x+10, y+s/2-2); ctx.restore(); }
+  // Téléphone (pilule bleu AD) — juste au-dessus du bandeau
+  const phoneRaw = vehicle.phone || '';
+  const phoneLabel = '📞 ' + phoneRaw; // emoji téléphone au lieu du point
+  const ph = 56; // hauteur pilule
+  const gapToBand = 28; // espace mini entre le téléphone et le bandeau
+  const phoneY = Math.min(sY + 72, bandY - gapToBand); // centre ~20px au-dessus du bandeau
+  ctx.font = '900 32px system-ui,-apple-system,Segoe UI,Roboto';
+  const tw = ctx.measureText(phoneLabel).width; const pw = tw + 64; // padding interne
+  const px = outW - M - pw, py = phoneY - ph/2;
+  rr(ctx, px, py, pw, ph, 28); ctx.fillStyle = THEME.blue; ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'alphabetic'; ctx.fillText(phoneLabel, px + 24, phoneY + 10 - 12);
+
+  // Bandeau bas (auto-fit sur une ligne) — monté
+  const msg = 'Garantie   •   Reprise possible   •   Recherche personnalisée (véhicule exact)';
+  ctx.fillStyle = THEME.blue; ctx.fillRect(0, bandY, outW, bandH);
+  ctx.fillStyle = '#fff'; let size = 28; const minS = 16; const padX = 36;
+  do { ctx.font = `800 ${size}px system-ui,-apple-system,Segoe UI,Roboto`; }
+  while (ctx.measureText(msg).width > outW - 2*padX && --size >= minS);
+  const mw = ctx.measureText(msg).width; ctx.textBaseline = 'middle';
+  ctx.fillText(msg, (outW - mw) / 2, bandY + bandH/2 + 2);
+}
 
 /* ====== State + bindings ====== */
 const state={ preset:'portrait', status:'aucun', focusX:0.82, focusY:0.60, focusOff:0.00 };
 function schedule(){ if(window.__raf) cancelAnimationFrame(window.__raf); window.__raf=requestAnimationFrame(drawPreview); }
-async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
-function bind(){ ['make','model','version','features','year','gearbox','fuel','mileage','power','price','phone','dealer'].forEach(id=>$(id).addEventListener('input',schedule)); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); })); $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); }); const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); }; $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto); $('btnGen').addEventListener('click', generatePNG); }
+async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
+function bind(){ ['make','model','version','features','year','gearbox','fuel','mileage','power','price','phone'].forEach(id=>$(id).addEventListener('input',schedule)); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); })); $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); }); const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); }; $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto); $('btnGen').addEventListener('click', generatePNG); }
 
-// iOS friendly download
+// iOS friendly download (nouvelle fenêtre + injection HTML)
 function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent);} 
-async function generatePNG(){ const dims=PRESETS[state.preset]; const c=$('export'); c.width=dims.w; c.height=dims.h; const preTab=isIOS()?window.open('about:blank','_blank'):null; await renderSheet(c, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); if(isIOS()){ const data=c.toDataURL('image/png'); if(preTab) preTab.location.href=data; else window.open(data,'_blank'); return; } c.toBlob((b)=>{ if(!b) return; const url=URL.createObjectURL(b); const a=document.createElement('a'); const fn=`${$('make').value}-${$('model').value}-${$('year').value}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); }
+async function generatePNG(){ const dims=PRESETS[state.preset]; const c=$('export'); c.width=dims.w; c.height=dims.h; const win=isIOS()?window.open('about:blank','_blank'):null; await renderSheet(c, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); if(isIOS()){ const data=c.toDataURL('image/png'); if(win){ win.document.open(); win.document.write('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>PNG</title><body style="margin:0;background:#111;display:grid;place-items:center"><img src="'+data+'" style="width:100%;height:auto;max-width:100%"/></body>'); win.document.close(); } else { window.open(data,'_blank'); } return; } c.toBlob((b)=>{ if(!b) return; const url=URL.createObjectURL(b); const a=document.createElement('a'); const fn=`${$('make').value}-${$('model').value}-${$('year').value}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); }
 
 bind(); schedule();
+
+// Remplacement du logo intégré
+(function(){
+  const B64 = 'iVBORw0KGgoAAAANSUhEUgAAAeoAAAGCCAYAAAAvyoANAAAQAElEQVR4Aez9B5hkx3UmiP4n7k1fvqqrvffd8ABB0IASnURSI5Ii';
+  if (B64 && B64.startsWith('iVBOR')) {
+    logoURL = 'data:image/png;base64,' + B64;
+  }
+})();
 </script>
 </body>
 </html>
