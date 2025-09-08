@@ -158,7 +158,7 @@ const DEFAULT_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEkCAYA
 const PRESETS = { square:{w:1080,h:1080,label:"Carré 1080×1080"}, portrait:{w:1080,h:1350,label:"Portrait 1080×1350"}, story:{w:1080,h:1920,label:"Story 1080×1920"} };
 const fr = new Intl.NumberFormat('fr-FR');
 const $ = id => document.getElementById(id);
-let logoURL = DEFAULT_LOGO; let photoURL = null;
+let logoURL = ''; let photoURL = null;
 
 function price(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" €":""; }
 function kms(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" KMS":""; }
@@ -179,7 +179,23 @@ async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,logoU
   ctx.restore();
   // Panneau logo + nom (au‑dessus du flou)
   const pad=26; const panelX=photoRect.x+pad, panelY=photoRect.y+pad; const panelH=72; const panelW=Math.min(680, photoRect.w-2*pad);
-  ctx.save(); rr(ctx,panelX-14,panelY-10,panelW+28,panelH+20,16); ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill(); try{ const logo=await loadImage(logoUrl||DEFAULT_LOGO); const maxH=48; const f=Math.min(1,maxH/logo.naturalHeight); const lw=Math.min(180, Math.round(logo.naturalWidth*f)); const lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, panelX, panelY, lw, lh); ctx.fillStyle='#111827'; ctx.font='800 22px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText($('dealer').value||'', panelX+lw+16, panelY+lh/2+2); }catch(e){} ctx.restore();
+  ctx.save(); rr(ctx,panelX-14,panelY-10,panelW+28,panelH+20,16); ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill();
+let textX = panelX; let textY = panelY + panelH/2;
+if (logoUrl) {
+  try {
+    const logo = await loadImage(logoUrl);
+    const maxH = 48; const f = Math.min(1, maxH / logo.naturalHeight);
+    const lw = Math.round(logo.naturalWidth * f); const lh = Math.round(logo.naturalHeight * f);
+    ctx.drawImage(logo, panelX, panelY, lw, lh);
+    textX = panelX + lw + 16; textY = panelY + lh/2 + 2;
+  } catch(e) {
+    const s = 56; rr(ctx,panelX,panelY,s,s,10); ctx.fillStyle='#E30613'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='800 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('AD', panelX+s/2, panelY+s/2+1); textX = panelX + s + 14; textY = panelY + s/2 + 2;
+  }
+} else {
+  const s = 56; rr(ctx,panelX,panelY,s,s,10); ctx.fillStyle='#E30613'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='800 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('AD', panelX+s/2, panelY+s/2+1); textX = panelX + s + 14; textY = panelY + s/2 + 2;
+}
+ctx.fillStyle='#111827'; ctx.font='800 22px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(dealerName || $('dealer').value || '', textX, textY);
+ctx.restore();
   // Prix (étoile)
   const scx=photoRect.x+photoRect.w-140, scy=photoRect.y+photoRect.h-60; ctx.save(); star(ctx,scx,scy,110,58,14); ctx.fillStyle='#E30613'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='900 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(price(vehicle.price), scx, scy+2); ctx.restore();
   // Statut
@@ -202,7 +218,7 @@ const state={ preset:'portrait', status:'aucun', focusX:0.82, focusY:0.60, focus
 function set(path, val){ const parts=path.split('.'); let cur=state; for(let i=0;i<parts.length-1;i++) cur=cur[parts[i]]; cur[parts.at(-1)]=val; }
 
 function bind(){ const map=[ ['make','vehicle.make'], ['model','vehicle.model'], ['version','vehicle.version'], ['features','vehicle.features'], ['year','vehicle.year'], ['gearbox','vehicle.gearbox'], ['fuel','vehicle.fuel'], ['power','vehicle.power'], ['mileage','vehicle.mileage'], ['price','vehicle.price'], ['phone','vehicle.phone'], ['dealer','dealerName'] ]; map.forEach(([id,path])=>$(id).addEventListener('input',()=>{ set(path,$(id).value); schedule(); })); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); });
-  ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',()=>{ state[id]=$('#'+id).value*1; schedule(); }));
+  ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(ev)=>{ const v=parseFloat(ev.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); }));
   $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); });
   const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); };
   $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto);
