@@ -1,628 +1,181 @@
-// path: src/App.tsx
-// Générateur de fiche véhicule Instagram avec flou arrière‑plan, statut (Réservé/Vendu),
-// logo, couleurs personnalisables, et export PNG. iPhone: input capture="environment".
-// Documentation inline minimale (pour le "pourquoi").
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fiche véhicule Instagram – AD</title>
+  <style>
+    :root{ --bg:#ffffff; --fg:#0f172a; --sub:#475569; --muted:#e2e8f0; --ad-red:#E30613; --ad-blue:#001E62; }
+    *{box-sizing:border-box}
+    body{margin:0;font:16px/1.45 ui-sans-serif,-apple-system,Segoe UI,Roboto,system-ui;color:var(--fg);background:var(--bg)}
+    .wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:420px 1fr;gap:24px}
+    @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
+    h1{margin:0 0 12px;font-size:24px}
+    section{border:1px solid var(--muted);border-radius:16px;padding:16px;background:#fff}
+    label.txt{display:block;font-size:13px;margin-bottom:8px;color:var(--sub)}
+    input[type="text"],select{width:100%;padding:10px 12px;border:1px solid var(--muted);border-radius:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .btn{border:1px solid var(--muted);border-radius:16px;padding:10px 14px;background:#fff;cursor:pointer}
+    .uploader{display:inline-block}.uploader input{display:none}
+    .small{color:var(--sub);font-size:12px}
+    canvas{background:#fff;border:1px solid var(--muted);border-radius:12px;max-width:100%}
+    /* Barre mobile fixée sous l’aperçu */
+    #controls{position:relative}
+    @media(max-width:820px){#controls{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--muted);padding:10px 12px}body{padding-bottom:170px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <h1>Fiche véhicule Instagram</h1>
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+      <section>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label class="uploader btn">Prendre une photo (iPhone)
+            <input id="photoCam" type="file" accept="image/*" capture="environment" />
+          </label>
+          <label class="uploader btn">Importer une photo
+            <input id="photoFile" type="file" accept="image/*" />
+          </label>
+          <label class="uploader btn">Logo AD (PNG/SVG)
+            <input id="logoFile" type="file" accept="image/*,.svg" />
+          </label>
+        </div>
+        <div class="small" style="margin-top:6px">Par défaut : <b>AD Expert</b> intégré ci‑dessous (remplaçable via le bouton).</div>
+      </section>
 
-// ========================= Types & Const =========================
+      <section>
+        <div class="row">
+          <div><label class="txt">Marque</label><input id="make" type="text" value="DACIA" /></div>
+          <div><label class="txt">Modèle</label><input id="model" type="text" value="SANDERO" /></div>
+          <div><label class="txt">Version / Finition</label><input id="version" type="text" value="1.5 DCI" /></div>
+          <div><label class="txt">Caractéristiques (– séparés)</label><input id="features" type="text" value="CAMÉRA – GPS – TOIT PANO – CROCHET ATTELAGE" /></div>
+          <div><label class="txt">Année</label><input id="year" type="text" value="2019" /></div>
+          <div><label class="txt">Boîte</label><input id="gearbox" type="text" value="MANUELLE" /></div>
+          <div><label class="txt">Énergie</label><input id="fuel" type="text" value="ESSENCE" /></div>
+          <div><label class="txt">Puissance (ch)</label><input id="power" type="text" value="110" /></div>
+          <div><label class="txt">Kilométrage</label><input id="mileage" type="text" value="110000" /></div>
+          <div><label class="txt">Téléphone</label><input id="phone" type="text" value="05 55 22 00 22" /></div>
+          <div><label class="txt">Prix (€)</label><input id="price" type="text" value="12000" /></div>
+        </div>
+      </section>
 
-type Preset = "square" | "portrait" | "story";
+      <section>
+        <div><label class="txt">Nom garage</label><input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" /></div>
+        <div class="row3" style="margin-top:12px">
+          <div><label class="txt">Statut</label><select id="status"><option value="aucun">aucun</option><option value="RÉSERVÉ">RÉSERVÉ</option><option value="VENDU">VENDU</option></select></div>
+          <div><label class="txt">Format</label><select id="preset"><option value="portrait">Portrait 1080×1350</option><option value="square">Carré 1080×1080</option><option value="story">Story 1080×1920</option></select></div>
+        </div>
+      </section>
+    </div>
 
-interface VehicleData {
-  make: string;
-  model: string;
-  version: string; // sous-titre
-  features: string; // ex: CarPlay/Radars/...
-  year: string;
-  gearbox: string;
-  fuel: string;
-  mileage: string; // km
-  power: string; // ch
-  price: string; // input brut
-  city: string;
-  phone: string;
-}
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="small" id="previewLabel">Prévisualisation</div>
+        <div style="display:flex;gap:8px"><button id="btnGen" class="btn">Télécharger PNG</button></div>
+      </div>
+      <canvas id="preview"></canvas>
+      <canvas id="export" style="display:none"></canvas>
 
-interface Theme {
-  primary: string; // couleur accent (badge prix, statut)
-  textDark: boolean; // fond clair vs sombre
-  ribbonBg: string;
-}
+      <section id="controls" style="margin-top:12px">
+        <div class="row3">
+          <div><label class="txt">Focus largeur</label><input id="focusX" type="range" min="0.5" max="1.1" step="0.01" value="0.82" /></div>
+          <div><label class="txt">Focus hauteur</label><input id="focusY" type="range" min="0.45" max="1.1" step="0.01" value="0.60" /></div>
+          <div><label class="txt">Position verticale</label><input id="focusOff" type="range" min="-0.25" max="0.25" step="0.005" value="0.00" /></div>
+        </div>
+        <div class="small" style="margin-top:6px">iPhone : la barre reste en bas, l’aperçu se met à jour <b>en direct</b> lorsque tu glisses.</div>
+      </section>
+    </div>
+  </div>
 
-const PRESETS: Record<Preset, { w: number; h: number; label: string }> = {
-  square:   { w: 1080, h: 1080, label: "Carré 1080×1080" },
-  portrait: { w: 1080, h: 1350, label: "Portrait 1080×1350" },
-  story:    { w: 1080, h: 1920, label: "Story 1080×1920" },
-};
+<script>
+/* ====== Logo AD Expert intégré (base64) ====== */
+const DEFAULT_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEkCAYAAAAB5GevAAAQAElEQVR4Aey9CZwdVbXvv6jKqZChQ9KJJgwmLZgAElDAK2kU4lQqkq7r4y3cQhS2r3n1jvQvG0c9xJzFhF0S3pQkqkX3/0m6VnJm9..."; // remplacé dans le vrai fichier (canvas) par la version complète
 
-const DEFAULT_VEHICLE: VehicleData = {
-  make: "OPEL",
-  model: "ADAM",
-  version: "1.4 TWINPORT 85ch White Edition",
-  features: "CarPlay/Radars/Entretien/Garantie",
-  year: "2019",
-  gearbox: "Manuelle",
-  fuel: "ESSENCE",
-  mileage: "71858",
-  power: "85",
-  price: "9990",
-  city: "Brive-la-Gaillarde",
-  phone: "06 16 13 15 89",
-};
+/* ====== Consts & helpers ====== */
+const PRESETS = { square:{w:1080,h:1080,label:"Carré 1080×1080"}, portrait:{w:1080,h:1350,label:"Portrait 1080×1350"}, story:{w:1080,h:1920,label:"Story 1080×1920"} };
+const $ = (id)=>document.getElementById(id);
+const fr = new Intl.NumberFormat('fr-FR');
+let logoURL = DEFAULT_LOGO, photoURL = null;
 
-const DEFAULT_THEME: Theme = {
-  primary: "#FACC15", // jaune
-  textDark: true,
-  ribbonBg: "#FACC15",
-};
+const THEME = { red:'#E30613', blue:'#001E62', fg:'#0f172a', sub:'#475569' };
 
-const fr = new Intl.NumberFormat("fr-FR");
+function price(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" €":""; }
+function kms(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" KMS":""; }
+function fitCover(sw,sh,dw,dh){ const sr=sw/sh, dr=dw/dh; if(sr>dr){ const sH=sh, sW=sH*dr, sx=(sw-sW)/2; return {sx,sy:0,sW,sH}; } else { const sW=sw, sH=sW/dr, sy=(sh-sH)/2; return {sx:0,sy,sW,sH}; } }
+function rr(ctx,x,y,w,h,r){ const t=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+t,y); ctx.arcTo(x+w,y,x+w,y+h,t); ctx.arcTo(x+w,y+h,x,y+h,t); ctx.arcTo(x,y+h,x,y,t); ctx.arcTo(x,y,x+w,y,t); ctx.closePath(); }
+function loadImage(url){ return new Promise((res,rej)=>{ const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
 
-// ========================= Utils =========================
+// Blur fallback (iPhone safe)
+function drawBlur(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,px=26){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${px}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return; } const tmp=document.createElement('canvas'); const t=tmp.getContext('2d'); const sc=Math.max(6, Math.floor(Math.min(dW,dH)/18)); const tw=Math.max(1, Math.floor(dW/sc)), th=Math.max(1, Math.floor(dH/sc)); tmp.width=tw; tmp.height=th; t.imageSmoothingEnabled=true; t.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); }
 
-function formatPriceEUR(input: string): string {
-  const digits = (input || "").replace(/[^0-9]/g, "");
-  if (!digits) return "";
-  return fr.format(Number(digits)) + "€";
-}
+function statusStamp(ctx,txt,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='900 120px system-ui,-apple-system,Segoe UI,Roboto'; ctx.lineWidth=10; ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineJoin='round'; ctx.miterLimit=2; ctx.strokeText(txt,0,0); ctx.fillStyle=color; ctx.fillText(txt,0,0); ctx.restore(); }
 
-function formatKm(input: string): string {
-  const digits = (input || "").replace(/[^0-9]/g, "");
-  if (!digits) return "";
-  return fr.format(Number(digits)) + " km";
-}
-
-function isiOS(): boolean {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
-
-function fitCover(srcW: number, srcH: number, dstW: number, dstH: number) {
-  const srcRatio = srcW / srcH;
-  const dstRatio = dstW / dstH;
-  if (srcRatio > dstRatio) {
-    const sH = srcH;
-    const sW = sH * dstRatio;
-    const sx = (srcW - sW) / 2;
-    return { sx, sy: 0, sW, sH };
-  } else {
-    const sW = srcW;
-    const sH = sW / dstRatio;
-    const sy = (srcH - sH) / 2;
-    return { sx: 0, sy, sW, sH };
-  }
-}
-
-async function loadBitmap(url: string): Promise<{ bmp: ImageBitmap; w: number; h: number } | null> {
-  try {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    const bmp = await createImageBitmap(blob);
-    return { bmp, w: bmp.width, h: bmp.height };
-  } catch {
-    return null;
-  }
-}
-
-function drawRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  const rr = Math.min(r, w / 2, h / 2);
+// Badge prix moderne: superellipse + gradient + lueur
+function drawPriceBadge(ctx, x, y, w, h, text){
+  const k = 0.55; const rx=w/2, ry=h/2; const cx=x+rx, cy=y+ry;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.1);
   ctx.beginPath();
-  ctx.moveTo(x + rr, y);
-  ctx.arcTo(x + w, y, x + w, y + h, rr);
-  ctx.arcTo(x + w, y + h, x, y + h, rr);
-  ctx.arcTo(x, y + h, x, y, rr);
-  ctx.arcTo(x, y, x + w, y, rr);
-  ctx.closePath();
-}
-
-/** Irregular "paint blob" for price badge. */
-function drawPaintBlob(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, seed = 0) {
-  const r = Math.min(w, h) / 2;
-  const cx = x + w / 2;
-  const cy = y + h / 2;
-  ctx.beginPath();
-  for (let i = 0; i < 12; i++) {
-    const ang = (i / 12) * Math.PI * 2;
-    const rr = r * (0.85 + 0.25 * Math.sin(i * 1.7 + seed));
-    const px = cx + Math.cos(ang) * rr;
-    const py = cy + Math.sin(ang) * rr;
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.quadraticCurveTo(cx, cy, px, py);
-  }
-  ctx.closePath();
-}
-
-/** Big diagonal status text over the photo. */
-function drawStatus(ctx: CanvasRenderingContext2D, text: string, rect: { x: number; y: number; w: number; h: number }, color: string) {
-  ctx.save();
-  ctx.translate(rect.x + rect.w / 2, rect.y + rect.h / 2);
-  ctx.rotate(-Math.PI / 14);
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.font = "800 160px Inter, ui-sans-serif, system-ui";
-  ctx.shadowColor = "rgba(0,0,0,0.35)";
-  ctx.shadowBlur = 18;
-  ctx.shadowOffsetY = 6;
-  ctx.fillStyle = color;
-  ctx.fillText(text, 0, 0);
+  ctx.moveTo(-rx, 0);
+  ctx.bezierCurveTo(-rx, -ry*k, -rx*k, -ry, 0, -ry);
+  ctx.bezierCurveTo(rx*k, -ry, rx, -ry*k, rx, 0);
+  ctx.bezierCurveTo(rx, ry*k, rx*k, ry, 0, ry);
+  ctx.bezierCurveTo(-rx*k, ry, -rx, ry*k, -rx, 0);
+  const g=ctx.createLinearGradient(-rx,-ry,rx,ry); g.addColorStop(0,'#ff5d6a'); g.addColorStop(1,'#b70014');
+  ctx.fillStyle=g; ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=18; ctx.shadowOffsetY=8; ctx.fill();
+  ctx.lineWidth=6; ctx.strokeStyle='rgba(255,255,255,0.95)'; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-rx*0.25, -ry*0.45, rx*0.35, ry*0.22, -0.2, 0, Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fill();
+  ctx.shadowColor='transparent'; ctx.fillStyle='#fff'; ctx.font='900 44px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text, 0, 6);
   ctx.restore();
 }
 
-// ========================= App =========================
-
-export default function App() {
-  const [preset, setPreset] = useState<Preset>("portrait");
-  const dims = PRESETS[preset];
-
-  const [vehicle, setVehicle] = useState<VehicleData>(DEFAULT_VEHICLE);
-  const [dealerName, setDealerName] = useState("GARAGE LAUMOND – Lanteuil • Meyssac • Argentat");
-  const [ribbonText, setRibbonText] = useState("Garantie 6 mois  •  En stock  •  Livraison  •  Financement  •  Reprise");
-
-  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-
-  // Flou: ovale nette au centre (réglable)
-  const [focus, setFocus] = useState({ scaleX: 0.78, scaleY: 0.55, offsetY: 0.02 });
-
-  const [status, setStatus] = useState<"aucun" | "RÉSERVÉ" | "VENDU">("aucun");
-
-  const previewRef = useRef<HTMLCanvasElement | null>(null);
-  const exportRef = useRef<HTMLCanvasElement | null>(null);
-
-  const fontsReady = useFontsReady();
-
-  // Preview re-render
-  useEffect(() => {
-    (async () => {
-      if (!fontsReady) return;
-      const c = previewRef.current;
-      if (!c) return;
-      const ratio = 0.38;
-      c.width = Math.round(dims.w * ratio);
-      c.height = Math.round(dims.h * ratio);
-      const ctx = c.getContext("2d");
-      if (!ctx) return;
-      const off = document.createElement("canvas");
-      off.width = dims.w;
-      off.height = dims.h;
-      await renderSheet(off, {
-        preset,
-        vehicle,
-        dealerName,
-        ribbonText,
-        theme,
-        logoUrl,
-        photoUrl,
-        focus,
-        status,
-      });
-      ctx.drawImage(off, 0, 0, c.width, c.height);
-    })();
-  }, [preset, vehicle, dealerName, ribbonText, theme, logoUrl, photoUrl, focus, status, fontsReady, dims.w, dims.h]);
-
-  async function generateAndDownload() {
-    const c = exportRef.current; if (!c) return;
-    const preNewTab = isiOS() ? window.open('', '_blank') : null; // iOS: ouvrir la fenêtre AVANT le rendu (évite le bloqueur)
-    c.width = dims.w; c.height = dims.h;
-    await renderSheet(c, { preset, vehicle, dealerName, ribbonText, theme, logoUrl, photoUrl, focus, status });
-    if (isiOS()) {
-      const dataURL = c.toDataURL('image/png');
-      if (preNewTab) preNewTab.location.href = dataURL; else window.open(dataURL, '_blank');
-      return;
-    }
-    c.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const file = `${vehicle.make}-${vehicle.model}-${vehicle.year}-${preset}`.replace(/[^a-z0-9-_]+/gi, '-');
-      a.href = url; a.download = `${file}.png`; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-    }, 'image/png');
-  });
-    c.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      if (isiOS()) {
-        window.open(url, "_blank"); // iOS: open new tab; download attr souvent ignoré
-      } else {
-        const a = document.createElement("a");
-        const file = `${vehicle.make}-${vehicle.model}-${vehicle.year}-${preset}`.replace(/[^a-z0-9-_]+/gi, "-");
-        a.href = url;
-        a.download = `${file}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-    }, "image/png");
-  }
-
-  function handlePick(setter: (v: string | null) => void) {
-    return (file?: File) => {
-      if (!file || !file.type.startsWith("image/")) return;
-      const url = URL.createObjectURL(file);
-      setter((prev) => { if (prev) URL.revokeObjectURL(prev); return url; });
-    };
-  }
-
-  const priceDisplay = formatPriceEUR(vehicle.price);
-
-  return (
-    <div className="min-h-screen p-6 bg-white text-gray-900">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-[440px_1fr] gap-6">
-        {/* === Panneau gauche (formulaire) === */}
-        <div className="space-y-5">
-          <h1 className="text-2xl font-bold">Fiche véhicule Instagram</h1>
-
-          <Fieldset title="Photo véhicule">
-            <div className="flex flex-wrap gap-2">
-              <FileButton label="Prendre une photo (iPhone)" accept="image/*" capture onPick={handlePick(setPhotoUrl)} />
-              <FileButton label="Importer une photo" accept="image/*" onPick={handlePick(setPhotoUrl)} />
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <Slider label="Focus largeur" value={focus.scaleX} setValue={(v) => setFocus({ ...focus, scaleX: v })} min={0.4} max={1.1} step={0.01} />
-              <Slider label="Focus hauteur" value={focus.scaleY} setValue={(v) => setFocus({ ...focus, scaleY: v })} min={0.35} max={1.1} step={0.01} />
-              <Slider label="Focus position Y" value={focus.offsetY} setValue={(v) => setFocus({ ...focus, offsetY: v })} min={-0.25} max={0.25} step={0.005} />
-            </div>
-          </Fieldset>
-
-          <Fieldset title="Logo & identité">
-            <div className="flex items-center gap-3">
-              <FileButton label="Logo AD (PNG/SVG)" accept="image/*,.svg" onPick={handlePick(setLogoUrl)} />
-              <small className="text-gray-500">Sans logo ⇒ monogramme "AD" auto</small>
-            </div>
-            <Input label="Nom garage" value={dealerName} onChange={setDealerName} />
-            <Input label="Texte ruban bas" value={ribbonText} onChange={setRibbonText} />
-            <div className="grid grid-cols-3 gap-3">
-              <ColorInput label="Couleur accent" value={theme.primary} onChange={(v) => setTheme({ ...theme, primary: v })} />
-              <Select label="Fond" value={theme.textDark ? "clair" : "sombre"} onChange={(v) => setTheme({ ...theme, textDark: v === "clair" })} options={["clair","sombre"]} />
-              <ColorInput label="Couleur ruban" value={theme.ribbonBg} onChange={(v) => setTheme({ ...theme, ribbonBg: v })} />
-            </div>
-          </Fieldset>
-
-          <Fieldset title="Détails véhicule">
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Marque" value={vehicle.make} onChange={(v) => setVehicle({ ...vehicle, make: v })} />
-              <Input label="Modèle" value={vehicle.model} onChange={(v) => setVehicle({ ...vehicle, model: v })} />
-              <Input label="Version / Finition" value={vehicle.version} onChange={(v) => setVehicle({ ...vehicle, version: v })} />
-              <Input label="Caractéristiques (\/ séparés)" value={vehicle.features} onChange={(v) => setVehicle({ ...vehicle, features: v })} />
-              <Input label="Année" value={vehicle.year} onChange={(v) => setVehicle({ ...vehicle, year: v })} />
-              <Input label="Boîte" value={vehicle.gearbox} onChange={(v) => setVehicle({ ...vehicle, gearbox: v })} />
-              <Input label="Énergie" value={vehicle.fuel} onChange={(v) => setVehicle({ ...vehicle, fuel: v })} />
-              <Input label="Puissance (ch)" value={vehicle.power} onChange={(v) => setVehicle({ ...vehicle, power: v })} />
-              <Input label="Kilométrage" value={vehicle.mileage} onChange={(v) => setVehicle({ ...vehicle, mileage: v })} />
-              <Input label="Téléphone" value={vehicle.phone} onChange={(v) => setVehicle({ ...vehicle, phone: v })} />
-              <Input label="Ville" value={vehicle.city} onChange={(v) => setVehicle({ ...vehicle, city: v })} />
-              <Input label="Prix (€)" value={vehicle.price} onChange={(v) => setVehicle({ ...vehicle, price: v })} />
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <Select label="Statut" value={status} onChange={(v) => setStatus(v as any)} options={["aucun", "RÉSERVÉ", "VENDU"]} />
-              <Select label="Format" value={preset} onChange={(v) => setPreset(v as Preset)} options={["square","portrait","story"]} />
-            </div>
-          </Fieldset>
-
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-2xl border" onClick={generateAndDownload}>Générer la fiche (PNG)</button>
-            <button className="px-4 py-2 rounded-2xl border" onClick={() => navigator.clipboard.writeText(makeCaption(vehicle, dealerName))}>Copier la légende</button>
-          </div>
-        </div>
-
-        {/* === Panneau droit (prévisualisation) === */}
-        <div className="space-y-3">
-          <div className="text-sm text-gray-500">Prévisualisation ({PRESETS[preset].label})</div>
-          <canvas ref={previewRef} className="w-full max-w-[720px] border rounded-xl" />
-          {/* Canvas export non visible */}
-          <canvas ref={exportRef} className="hidden" />
-        </div>
-      </div>
-    </div>
-  );
+/* ====== Render ====== */
+async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,logoUrl,photoUrl,focus,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; ctx.clearRect(0,0,outW,outH); ctx.fillStyle='#fff'; ctx.fillRect(0,0,outW,outH);
+  // Bordure fine bleue
+  const B=8; ctx.strokeStyle=THEME.blue; ctx.lineWidth=B; ctx.strokeRect(B/2+16, B/2+16, outW-B-32, outH-B-32);
+  // Zone photo
+  const M=52; const photoH=Math.round(outH*0.56); const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
+  ctx.save(); rr(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip();
+  if(photoUrl){ const img=await loadImage(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); drawBlur(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,26); const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focus.offsetY); const rx=(photoRect.w/2)*focus.scaleX; const ry=(photoRect.h/2)*focus.scaleY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); } else { const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#E5E7EB'); g.addColorStop(1,'#F3F4F6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h);} ctx.restore();
+  // Panneau logo + garage (centré verticalement)
+  const pad=22; const lx=photoRect.x+pad, ly=photoRect.y+pad; const panelW=Math.min(720, photoRect.w-2*pad); const panelH=64;
+  ctx.save(); rr(ctx,lx-14,ly-10,panelW, panelH, 16); ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill();
+  let textX = lx + 72 + 14; let textY = ly + panelH/2; // défaut si fallback AD
+  try{ if(logoUrl){ const logo=await loadImage(logoUrl); const maxH=44; const f=maxH/logo.naturalHeight; const lw=Math.round(logo.naturalWidth*f), lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, lx, ly+(panelH-lh)/2, lw, lh); textX = lx + lw + 16; textY = ly + panelH/2; } else { drawADFallback(ctx,lx,ly+(panelH-56)/2); } }catch(e){ drawADFallback(ctx,lx,ly+(panelH-56)/2); }
+  ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.textAlign='left'; ctx.fillText(dealerName||$('dealer').value||'', textX, textY);
+  ctx.restore();
+  // Badge prix moderne
+  const p = price(vehicle.price); if(p){ const bw=320, bh=120; const bx = photoRect.x + photoRect.w - bw - 18; const by = photoRect.y + photoRect.h - bh - 18; drawPriceBadge(ctx, bx, by, bw, bh, p); }
+  // Statut
+  if(status!=='aucun') statusStamp(ctx,status,photoRect,THEME.red);
+  // Titre & sous-titres (plus bas)
+  const titleY=photoRect.y+photoRect.h+96; ctx.fillStyle=THEME.fg; ctx.font='900 60px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('make').value+' '+$('model').value).toUpperCase(), M, titleY);
+  const vY=titleY+40; ctx.font='700 32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('version').value||'').toUpperCase(), M, vY);
+  const fY=vY+38; ctx.font='800 28px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('features').value||'').toUpperCase(), M, fY);
+  // Specs
+  const sY=fY+54; ctx.fillStyle=THEME.sub; ctx.font='700 28px system-ui,-apple-system,Segoe UI,Roboto'; const specs=[$('year').value, $('gearbox').value, $('fuel').value, ($('power').value||'')+' ch', kms($('mileage').value)].filter(Boolean).join('  •  '); ctx.fillText(specs, M, sY);
+  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, sY+18); ctx.lineTo(outW-M, sY+18); ctx.stroke();
+  // Téléphone (plus haut)
+  const phoneY = outH - 260; const phoneTxt = $('phone').value||''; ctx.font='900 32px system-ui,-apple-system,Segoe UI,Roboto'; const tw=ctx.measureText(phoneTxt).width; const pw=tw+90, ph=56; const px=outW-M-pw, py=phoneY-ph/2; rr(ctx,px,py,pw,ph,28); ctx.fillStyle=THEME.blue; ctx.fill(); ctx.fillStyle='#fff'; ctx.fillText(phoneTxt, px+56, phoneY+12-12); ctx.beginPath(); ctx.arc(px+30, py+ph/2, 8, 0, Math.PI*2); ctx.fill();
+  // Bandeau bas (auto-fit sur une ligne)
+  const bandH = 72; const msg = 'Possibilité de reprise de votre véhicule   •   Recherche personnalisée : on trouve le modèle exact que vous cherchez'; ctx.fillStyle=THEME.blue; ctx.fillRect(0, outH-bandH, outW, bandH); ctx.fillStyle='#fff'; let size=28; const minS=18; const padX=36; do{ ctx.font=`800 ${size}px system-ui,-apple-system,Segoe UI,Roboto`; }while(ctx.measureText(msg).width>outW-2*padX && --size>=minS); const mw=ctx.measureText(msg).width; ctx.textBaseline='middle'; ctx.fillText(msg, (outW-mw)/2, outH-bandH/2+2);
 }
 
-// ========================= Rendu Canvas =========================
+function drawADFallback(ctx,x,y){ const s=56; ctx.save(); rr(ctx,x-6,y-4,s+12,s+8,10); ctx.fillStyle='#fff'; ctx.globalAlpha=0.95; ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle=THEME.red; ctx.font='900 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText('AD', x+10, y+s/2-2); ctx.restore(); }
 
-interface RenderInput {
-  preset: Preset;
-  vehicle: VehicleData;
-  dealerName: string;
-  ribbonText: string;
-  theme: Theme;
-  logoUrl: string | null;
-  photoUrl: string | null;
-  focus: { scaleX: number; scaleY: number; offsetY: number };
-  status: "aucun" | "RÉSERVÉ" | "VENDU";
-}
+/* ====== State + bindings ====== */
+const state={ preset:'portrait', status:'aucun', focusX:0.82, focusY:0.60, focusOff:0.00 };
+function schedule(){ if(window.__raf) cancelAnimationFrame(window.__raf); window.__raf=requestAnimationFrame(drawPreview); }
+async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
+function bind(){ ['make','model','version','features','year','gearbox','fuel','mileage','power','price','phone','dealer'].forEach(id=>$(id).addEventListener('input',schedule)); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); })); $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); }); const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); }; $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto); $('btnGen').addEventListener('click', generatePNG); }
 
-async function renderSheet(canvas: HTMLCanvasElement, data: RenderInput) {
-  const { preset, vehicle, dealerName, ribbonText, theme, logoUrl, photoUrl, focus, status } = data;
-  const { w: outW, h: outH } = PRESETS[preset];
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+// iOS friendly download
+function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent);} 
+async function generatePNG(){ const dims=PRESETS[state.preset]; const c=$('export'); c.width=dims.w; c.height=dims.h; const preTab=isIOS()?window.open('about:blank','_blank'):null; await renderSheet(c, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); if(isIOS()){ const data=c.toDataURL('image/png'); if(preTab) preTab.location.href=data; else window.open(data,'_blank'); return; } c.toBlob((b)=>{ if(!b) return; const url=URL.createObjectURL(b); const a=document.createElement('a'); const fn=`${$('make').value}-${$('model').value}-${$('year').value}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); }
 
-  const bgColor = theme.textDark ? "#FFFFFF" : "#0B0B0B";
-  const fgColor = theme.textDark ? "#111827" : "#F9FAFB";
-  const subColor = theme.textDark ? "#4B5563" : "#D1D5DB";
-
-  ctx.clearRect(0, 0, outW, outH);
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, outW, outH);
-
-  // --- Photo zone ---
-  const margin = 48;
-  const photoH = Math.round(outH * (preset === "story" ? 0.56 : preset === "portrait" ? 0.52 : 0.56));
-  const photoRect = { x: margin, y: margin, w: outW - 2 * margin, h: photoH };
-
-  // Photo: blurred background + sharp elliptical focus.
-  if (photoUrl) {
-    const img = await loadBitmap(photoUrl);
-    if (img) {
-      const { sx, sy, sW, sH } = fitCover(img.w, img.h, photoRect.w, photoRect.h);
-
-      // 1) BLUR background
-      ctx.save();
-      drawRoundRect(ctx, photoRect.x, photoRect.y, photoRect.w, photoRect.h, 28);
-      ctx.clip();
-      (ctx as any).filter = "blur(26px)"; // Pourquoi: filtre canvas natif, performant sur iOS modernes
-      ctx.drawImage(img.bmp as any, sx, sy, sW, sH, photoRect.x, photoRect.y, photoRect.w, photoRect.h);
-      (ctx as any).filter = "none";
-
-      // 2) SHARP ellipse on top
-      const cx = photoRect.x + photoRect.w / 2;
-      const cy = photoRect.y + photoRect.h * (0.5 + focus.offsetY);
-      const rx = (photoRect.w / 2) * focus.scaleX;
-      const ry = (photoRect.h / 2) * focus.scaleY;
-      ctx.save();
-      ctx.beginPath();
-      // ellipse path
-      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.drawImage(img.bmp as any, sx, sy, sW, sH, photoRect.x, photoRect.y, photoRect.w, photoRect.h);
-      ctx.restore();
-
-      // 3) Subtle top gradient for legibility
-      const g = ctx.createLinearGradient(0, photoRect.y, 0, photoRect.y + 160);
-      g.addColorStop(0, theme.textDark ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.15)");
-      g.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = g;
-      ctx.fillRect(photoRect.x, photoRect.y, photoRect.w, Math.min(photoRect.h, 160));
-
-      ctx.restore();
-    }
-  } else {
-    // Placeholder si pas de photo
-    ctx.save();
-    drawRoundRect(ctx, photoRect.x, photoRect.y, photoRect.w, photoRect.h, 28);
-    ctx.clip();
-    const g = ctx.createLinearGradient(0, photoRect.y, 0, photoRect.y + photoRect.h);
-    g.addColorStop(0, "#E5E7EB");
-    g.addColorStop(1, "#F3F4F6");
-    ctx.fillStyle = g;
-    ctx.fillRect(photoRect.x, photoRect.y, photoRect.w, photoRect.h);
-    ctx.restore();
-  }
-
-  // --- Logo + Dealer ---
-  const topPad = 24;
-  {
-    const panelX = photoRect.x + topPad;
-    const panelY = photoRect.y + topPad;
-    let logoW = 0, logoH = 0;
-    // mesurons logo si fourni
-    let logoBmp = null as any;
-    if (logoUrl) {
-      const logo = await loadBitmap(logoUrl);
-      if (logo) {
-        const maxW = 220, maxH = 56;
-        const fit = Math.min(maxW / logo.w, maxH / logo.h, 1);
-        logoW = Math.round(logo.w * fit);
-        logoH = Math.round(logo.h * fit);
-        logoBmp = logo.bmp as any;
-      }
-    }
-    const panelW = Math.min(760, photoRect.w - 2 * topPad);
-    const panelH = Math.max(logoH + 24, 64);
-    // fond panneau
-    ctx.save();
-    drawRoundRect(ctx, panelX, panelY, panelW, panelH, 14);
-    ctx.fillStyle = theme.textDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.35)';
-    ctx.fill();
-
-    // logo ou fallback AD
-    const logoX = panelX + 12;
-    const logoY = panelY + (panelH - (logoH || 56)) / 2;
-    if (logoBmp) {
-      ctx.drawImage(logoBmp, logoX, logoY, logoW, logoH);
-    } else {
-      // fallback monogramme AD
-      const s = 56;
-      drawRoundRect(ctx, logoX - 6, logoY - 4, s + 12, s + 8, 10);
-      ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 0.95; ctx.fill(); ctx.globalAlpha = 1;
-      ctx.fillStyle = theme.primary;
-      ctx.font = '900 40px Inter, ui-sans-serif, system-ui';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('AD', logoX + 10, logoY + s/2 - 4);
-    }
-
-    // libellé garage (centré verticalement dans le panneau)
-    ctx.fillStyle = theme.textDark ? '#111827' : '#F9FAFB';
-    ctx.font = '800 20px Inter, ui-sans-serif, system-ui';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(dealerName, logoX + (logoW || 56) + 20, panelY + panelH / 2);
-    ctx.restore();
-  }
-
-  // --- Price blob ---
-  const price = formatPriceEUR(vehicle.price);
-  if (price) {
-    const pw = 360, ph = 160;
-    const px = photoRect.x + photoRect.w - pw - 16;
-    const py = photoRect.y + photoRect.h - ph - 16;
-    ctx.save();
-    drawPaintBlob(ctx, px, py, pw, ph, 1.2);
-    ctx.fillStyle = theme.primary;
-    ctx.fill();
-    ctx.fillStyle = "#111827";
-    ctx.font = "900 56px Inter, ui-sans-serif, system-ui";
-    ctx.fillText(price, px + 36, py + ph / 2 + 18);
-    ctx.restore();
-  }
-
-  // --- Status text over photo ---
-  if (status !== "aucun") {
-    drawStatus(ctx, status, photoRect, theme.primary);
-  }
-
-  // --- Title & sub ---
-  const titleY = photoRect.y + photoRect.h + 72;
-  ctx.fillStyle = fgColor;
-  ctx.font = "800 64px Inter, ui-sans-serif, system-ui";
-  ctx.fillText(`${vehicle.make} ${vehicle.model}`.trim(), margin, titleY);
-
-  ctx.fillStyle = subColor;
-  ctx.font = "600 36px Inter, ui-sans-serif, system-ui";
-  const versionY = titleY + 48;
-  ctx.fillText(vehicle.version, margin, versionY);
-  const featuresY = versionY + 42;
-  ctx.font = "500 34px Inter, ui-sans-serif, system-ui";
-  ctx.fillText(vehicle.features.split("/").join("/"), margin, featuresY);
-
-  // --- Specs row ---
-  const specsY = featuresY + 58;
-  ctx.fillStyle = subColor;
-  ctx.font = "600 34px Inter, ui-sans-serif, system-ui";
-  const specs = [
-    `📅 ${vehicle.year}`,
-    `⚙️ ${vehicle.gearbox}`,
-    `⛽️ ${vehicle.fuel}`,
-    `🐎 ${vehicle.power} ch`,
-    `🧭 ${formatKm(vehicle.mileage)}`,
-  ].join("   •   ");
-  ctx.fillText(specs, margin, specsY);
-
-  // Divider
-  ctx.strokeStyle = theme.textDark ? "#E5E7EB" : "#1F2937";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(margin, specsY + 18);
-  ctx.lineTo(outW - margin, specsY + 18);
-  ctx.stroke();
-
-  // --- Footer: left dealer, right phone ---
-  const footerY = outH - 120;
-  ctx.fillStyle = subColor;
-  ctx.font = "700 34px Inter, ui-sans-serif, system-ui";
-  ctx.fillText(dealerName, margin, footerY);
-
-  const phoneText = `☎️ ${vehicle.phone}`;
-  const tw = ctx.measureText(phoneText).width;
-  ctx.fillText(phoneText, outW - margin - tw, footerY);
-
-  // --- Bottom ribbon ---
-  const ribbonH = 64;
-  ctx.fillStyle = theme.ribbonBg; ctx.fillRect(0, outH - ribbonH, outW, ribbonH);
-  const msg = ribbonText;
-  let size = 28; const minSize = 18; const padX = 36; // auto-shrink pour tenir sur une ligne
-  ctx.fillStyle = '#111827';
-  do { ctx.font = `800 ${size}px Inter, ui-sans-serif, system-ui`; } while (ctx.measureText(msg).width > outW - 2*padX && --size >= minSize);
-  const rw = ctx.measureText(msg).width;
-  ctx.textBaseline = 'middle'; ctx.fillText(msg, (outW - rw) / 2, outH - ribbonH / 2 + 2);
-}
-
-// ========================= Hooks & Helpers =========================
-
-function useFontsReady() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    (async () => {
-      try {
-        await (document as any).fonts?.load("700 24px Inter");
-        await (document as any).fonts?.ready;
-      } catch {}
-      setReady(true);
-    })();
-  }, []);
-  return ready;
-}
-
-function makeCaption(v: VehicleData, dealer: string) {
-  return [
-    `${v.make} ${v.model} ${v.year}`,
-    `${v.version}`,
-    v.features.split("/").join(" • "),
-    `📍 ${v.city}`,
-    `💶 ${formatPriceEUR(v.price)}`,
-    `🧭 ${formatKm(v.mileage)} • ⛽️ ${v.fuel} • ⚙️ ${v.gearbox} • 🐎 ${v.power} ch`,
-    `☎️ ${v.phone}`,
-    dealer,
-    "",
-    "#voiture #occasion #garage #instacar #venteauto #caroftheday",
-  ].filter(Boolean).join("\n");
-}
-
-// ========================= UI Components =========================
-
-function Fieldset({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="border rounded-2xl p-4">
-      <div className="font-semibold mb-3">{title}</div>
-      {children}
-    </section>
-  );
-}
-
-function Input({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <label className="text-sm">
-      <div className="mb-1 text-gray-600">{label}</div>
-      <input className="w-full border rounded-xl px-3 py-2" value={value} onChange={(e) => onChange(e.target.value)} />
-    </label>
-  );
-}
-
-function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
-  return (
-    <label className="text-sm">
-      <div className="mb-1 text-gray-600">{label}</div>
-      <select className="w-full border rounded-xl px-3 py-2 bg-white" value={value} onChange={(e) => onChange(e.target.value)}>
-        {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <label className="text-sm flex items-center gap-3">
-      <span className="text-gray-600 min-w-[9rem]">{label}</span>
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
-      <input className="flex-1 border rounded-xl px-3 py-2" value={value} onChange={(e) => onChange(e.target.value)} />
-    </label>
-  );
-}
-
-function Slider({ label, value, setValue, min, max, step }: { label: string; value: number; setValue: (n: number) => void; min: number; max: number; step: number }) {
-  return (
-    <label className="text-sm">
-      <div className="mb-1 text-gray-600">{label}</div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => setValue(parseFloat(e.target.value))} className="w-full" />
-    </label>
-  );
-}
-
-function FileButton({ label, accept, onPick, capture }: { label: string; accept: string; onPick: (f?: File) => void; capture?: boolean }) {
-  return (
-    <label className="px-3 py-2 rounded-2xl border cursor-pointer">
-      {label}
-      <input
-        type="file"
-        accept={accept}
-        className="hidden"
-        {...(capture ? ({ capture: "environment" } as any) : {})}
-        onChange={(e) => onPick(e.target.files?.[0])}
-      />
-    </label>
-  );
-}
+bind(); schedule();
+</script>
+</body>
+</html>
