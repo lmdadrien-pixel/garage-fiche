@@ -166,8 +166,7 @@ async function renderSheet(canvas, data){ const {preset,vehicle,photoUrl,focus,s
   const phoneRaw = vehicle.phone || '';
   const phoneLabel = '📞 ' + phoneRaw; // emoji téléphone au lieu du point
   const ph = 56; // hauteur pilule
-  const gapToBand = 28; // espace mini entre le téléphone et le bandeau
-  const phoneY = Math.min(sY + 72, bandY - gapToBand); // centre ~20px au-dessus du bandeau
+  const phoneY = bandY - 20; // centre ~20px au-dessus du bandeau
   ctx.font = '900 32px system-ui,-apple-system,Segoe UI,Roboto';
   const tw = ctx.measureText(phoneLabel).width; const pw = tw + 64; // padding interne
   const px = outW - M - pw, py = phoneY - ph/2;
