@@ -5,27 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fiche véhicule Instagram – AD</title>
   <style>
-    :root{ --bg:#ffffff; --fg:#111827; --sub:#4B5563; --ad-red:#E30613; --ad-blue:#001E62; }
+    :root{ --bg:#ffffff; --fg:#0f172a; --sub:#475569; --muted:#e2e8f0; --ad-red:#E30613; --ad-blue:#001E62; }
     *{box-sizing:border-box}
-    body{margin:0;font:16px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,system-ui; color:var(--fg); background:var(--bg)}
+    body{margin:0;font:16px/1.45 ui-sans-serif, -apple-system, Segoe UI, Roboto, system-ui; color:var(--fg); background:var(--bg)}
     .wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:420px 1fr;gap:24px}
     @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
     h1{margin:0 0 12px;font-size:24px}
-    section{border:1px solid #e5e7eb;border-radius:16px;padding:16px;background:#fff}
+    section{border:1px solid var(--muted);border-radius:16px;padding:16px;background:#fff}
     label.txt{display:block;font-size:13px;margin-bottom:8px;color:var(--sub)}
-    input[type="text"], select{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:12px}
+    input[type="text"], select{width:100%;padding:10px 12px;border:1px solid var(--muted);border-radius:12px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    .btn{border:1px solid #e5e7eb;border-radius:16px;padding:10px 14px;background:#fff;cursor:pointer}
+    .btn{border:1px solid var(--muted);border-radius:16px;padding:10px 14px;background:#fff;cursor:pointer}
     .uploader{display:inline-block}
     .uploader input{display:none}
     .small{color:var(--sub);font-size:12px}
-    canvas{background:#fff;border:1px solid #e5e7eb;border-radius:12px;max-width:100%}
-    /* Barre mobile fixée */
+    canvas{background:#fff;border:1px solid var(--muted);border-radius:12px;max-width:100%}
+    /* Barre mobile fixée sous l’aperçu */
     #controls{position:relative}
     @media(max-width:820px){
-      #controls{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid #e5e7eb;padding:10px 12px}
-      body{padding-bottom:160px}
+      #controls{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--muted);padding:10px 12px}
+      body{padding-bottom:170px}
     }
   </style>
 </head>
@@ -46,79 +46,35 @@
             <input id="logoFile" type="file" accept="image/*,.svg" />
           </label>
         </div>
-        <div class="small" style="margin-top:6px">Par défaut : logo <b>AD Expert</b> ci‑dessous (remplaçable)</div>
+        <div class="small" style="margin-top:6px">Logo par défaut : <b>AD Expert</b> intégré (tu peux le remplacer).</div>
       </section>
 
       <section>
         <div class="row">
-          <div>
-            <label class="txt">Marque</label>
-            <input id="make" type="text" value="DACIA" />
-          </div>
-          <div>
-            <label class="txt">Modèle</label>
-            <input id="model" type="text" value="SANDERO" />
-          </div>
-          <div>
-            <label class="txt">Version / Finition</label>
-            <input id="version" type="text" value="1.5 DCI" />
-          </div>
-          <div>
-            <label class="txt">Caractéristiques (– séparés)</label>
-            <input id="features" type="text" value="CAMÉRA – GPS – TOIT PANO – CROCHET ATTELAGE" />
-          </div>
-          <div>
-            <label class="txt">Année</label>
-            <input id="year" type="text" value="2019" />
-          </div>
-          <div>
-            <label class="txt">Boîte</label>
-            <input id="gearbox" type="text" value="MANUELLE" />
-          </div>
-          <div>
-            <label class="txt">Énergie</label>
-            <input id="fuel" type="text" value="ESSENCE" />
-          </div>
-          <div>
-            <label class="txt">Puissance (ch)</label>
-            <input id="power" type="text" value="110" />
-          </div>
-          <div>
-            <label class="txt">Kilométrage</label>
-            <input id="mileage" type="text" value="110000" />
-          </div>
-          <div>
-            <label class="txt">Téléphone</label>
-            <input id="phone" type="text" value="05 55 22 00 22" />
-          </div>
-          <div>
-            <label class="txt">Prix (€)</label>
-            <input id="price" type="text" value="12000" />
-          </div>
+          <div><label class="txt">Marque</label><input id="make" type="text" value="DACIA" /></div>
+          <div><label class="txt">Modèle</label><input id="model" type="text" value="SANDERO" /></div>
+          <div><label class="txt">Version / Finition</label><input id="version" type="text" value="1.5 DCI" /></div>
+          <div><label class="txt">Caractéristiques (– séparés)</label><input id="features" type="text" value="CAMÉRA – GPS – TOIT PANO – CROCHET ATTELAGE" /></div>
+          <div><label class="txt">Année</label><input id="year" type="text" value="2019" /></div>
+          <div><label class="txt">Boîte</label><input id="gearbox" type="text" value="MANUELLE" /></div>
+          <div><label class="txt">Énergie</label><input id="fuel" type="text" value="ESSENCE" /></div>
+          <div><label class="txt">Puissance (ch)</label><input id="power" type="text" value="110" /></div>
+          <div><label class="txt">Kilométrage</label><input id="mileage" type="text" value="110000" /></div>
+          <div><label class="txt">Téléphone</label><input id="phone" type="text" value="05 55 22 00 22" /></div>
+          <div><label class="txt">Prix (€)</label><input id="price" type="text" value="12000" /></div>
         </div>
       </section>
 
       <section>
-        <div>
-          <label class="txt">Nom garage</label>
-          <input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" />
-        </div>
+        <div><label class="txt">Nom garage</label><input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" /></div>
         <div class="row3" style="margin-top:12px">
           <div>
             <label class="txt">Statut</label>
-            <select id="status">
-              <option value="aucun">aucun</option>
-              <option value="RÉSERVÉ">RÉSERVÉ</option>
-              <option value="VENDU">VENDU</option>
-            </select>
+            <select id="status"><option value="aucun">aucun</option><option value="RÉSERVÉ">RÉSERVÉ</option><option value="VENDU">VENDU</option></select>
           </div>
           <div>
             <label class="txt">Format</label>
-            <select id="preset">
-              <option value="portrait">Portrait 1080×1350</option>
-              <option value="square">Carré 1080×1080</option>
-              <option value="story">Story 1080×1920</option>
-            </select>
+            <select id="preset"><option value="portrait">Portrait 1080×1350</option><option value="square">Carré 1080×1080</option><option value="story">Story 1080×1920</option></select>
           </div>
         </div>
       </section>
@@ -134,103 +90,94 @@
 
       <section id="controls" style="margin-top:12px">
         <div class="row3">
-          <div>
-            <label class="txt">Focus largeur</label>
-            <input id="focusX" type="range" min="0.5" max="1.1" step="0.01" value="0.82" />
-          </div>
-          <div>
-            <label class="txt">Focus hauteur</label>
-            <input id="focusY" type="range" min="0.45" max="1.1" step="0.01" value="0.60" />
-          </div>
-          <div>
-            <label class="txt">Position verticale</label>
-            <input id="focusOff" type="range" min="-0.25" max="0.25" step="0.005" value="0.00" />
-          </div>
+          <div><label class="txt">Focus largeur</label><input id="focusX" type="range" min="0.5" max="1.1" step="0.01" value="0.82" /></div>
+          <div><label class="txt">Focus hauteur</label><input id="focusY" type="range" min="0.45" max="1.1" step="0.01" value="0.60" /></div>
+          <div><label class="txt">Position verticale</label><input id="focusOff" type="range" min="-0.25" max="0.25" step="0.005" value="0.00" /></div>
         </div>
-        <div class="small" style="margin-top:6px">Sur iPhone : cette barre reste en bas, l’aperçu au‑dessus → **live** pendant que tu glisses.</div>
+        <div class="small" style="margin-top:6px">Sur iPhone, cette barre reste en bas. L’aperçu au-dessus se met à jour <b>en direct</b>.</div>
       </section>
     </div>
   </div>
 
 <script>
-// ====== Defaults & helpers ======
-const DEFAULT_LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAEkCAYAAAB..."; // remplacé plus bas
+/* ====== Logo AD Expert intégré (fallback) ====== */
+const DEFAULT_LOGO = "REPLACE_WITH_DATAURL"; // remplacé plus bas
+
+/* ====== Consts & helpers ====== */
 const PRESETS = { square:{w:1080,h:1080,label:"Carré 1080×1080"}, portrait:{w:1080,h:1350,label:"Portrait 1080×1350"}, story:{w:1080,h:1920,label:"Story 1080×1920"} };
+const $ = (id)=>document.getElementById(id);
 const fr = new Intl.NumberFormat('fr-FR');
-const $ = id => document.getElementById(id);
-let logoURL = ''; let photoURL = null;
+let logoURL = DEFAULT_LOGO; let photoURL = null;
+
+const THEME = { red:'#E30613', blue:'#001E62', fg:'#0f172a', sub:'#475569' };
 
 function price(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" €":""; }
 function kms(v){ const d=(v||'').replace(/[^0-9]/g,''); return d?fr.format(+d)+" KMS":""; }
 function fitCover(sw,sh,dw,dh){ const sr=sw/sh, dr=dw/dh; if(sr>dr){ const sH=sh, sW=sH*dr, sx=(sw-sW)/2; return {sx,sy:0,sW,sH}; } else { const sW=sw, sH=sW/dr, sy=(sh-sH)/2; return {sx:0,sy,sW,sH}; } }
 function rr(ctx,x,y,w,h,r){ const t=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+t,y); ctx.arcTo(x+w,y,x+w,y+h,t); ctx.arcTo(x+w,y+h,x,y+h,t); ctx.arcTo(x,y+h,x,y,t); ctx.arcTo(x,y,x+w,y,t); ctx.closePath(); }
-function star(ctx,cx,cy,outer,inner,points=14){ ctx.beginPath(); const step=Math.PI/points; for(let i=0;i<2*points;i++){ const r=(i%2===0)?outer:inner; const a=i*step; const x=cx+Math.cos(a)*r; const y=cy+Math.sin(a)*r; if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);} ctx.closePath(); }
-function statusStamp(ctx,txt,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='900 112px system-ui,-apple-system,Segoe UI,Roboto'; ctx.lineWidth=10; ctx.strokeStyle='#fff'; ctx.lineJoin='round'; ctx.miterLimit=2; ctx.strokeText(txt,0,0); ctx.fillStyle=color; ctx.fillText(txt,0,0); ctx.restore(); }
-function loadImage(url){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
+function loadImage(url){ return new Promise((res,rej)=>{ const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
 
-// ====== Render ======
+// Flou compatible iPhone: filtre si dispo, sinon downscale/upscale
+function drawBlur(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,px=24){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${px}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return; } const tmp=document.createElement('canvas'); const t=tmp.getContext('2d'); const sc=Math.max(6, Math.floor(Math.min(dW,dH)/18)); const tw=Math.max(1, Math.floor(dW/sc)), th=Math.max(1, Math.floor(dH/sc)); tmp.width=tw; tmp.height=th; t.imageSmoothingEnabled=true; t.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); }
+
+function statusStamp(ctx,txt,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='900 120px system-ui,-apple-system,Segoe UI,Roboto'; ctx.lineWidth=10; ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineJoin='round'; ctx.miterLimit=2; ctx.strokeText(txt,0,0); ctx.fillStyle=color; ctx.fillText(txt,0,0); ctx.restore(); }
+
+function drawPriceBadge(ctx, cx, cy, text){ const R=110; // cercle moderne
+  ctx.save();
+  // ombre douce
+  ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=16; ctx.shadowOffsetY=6;
+  // badge
+  const g=ctx.createRadialGradient(cx-20,cy-20,20,cx,cy,R);
+  g.addColorStop(0,'#ff4d5a'); g.addColorStop(1,'#b70014');
+  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+  // anneau blanc
+  ctx.lineWidth=6; ctx.strokeStyle='#fff'; ctx.stroke();
+  // reflet
+  ctx.beginPath(); ctx.arc(cx-28, cy-36, 38, Math.PI*0.15, Math.PI*1.1);
+  ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=8; ctx.stroke();
+  // texte
+  ctx.shadowColor='transparent'; ctx.fillStyle='#fff'; ctx.font='900 42px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text, cx, cy+2);
+  ctx.restore(); }
+
+/* ====== Render ====== */
 async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,logoUrl,photoUrl,focus,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; ctx.clearRect(0,0,outW,outH); ctx.fillStyle='#fff'; ctx.fillRect(0,0,outW,outH);
   // Bordure bleue
-  const B=8; ctx.strokeStyle='#001E62'; ctx.lineWidth=B; ctx.strokeRect(B/2+16, B/2+16, outW-B-32, outH-B-32);
-  // Bloc photo
+  const B=8; ctx.strokeStyle=THEME.blue; ctx.lineWidth=B; ctx.strokeRect(B/2+16, B/2+16, outW-B-32, outH-B-32);
+  // Bloc photo arrondi
   const M=56; const photoH=Math.round(outH*0.58); const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
   ctx.save(); rr(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,44); ctx.clip();
-  if(photoUrl){ const img=await loadImage(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); const any=ctx; const prev=any.filter; any.filter='blur(24px)'; ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); any.filter=prev; const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focus.offsetY); const rx=(photoRect.w/2)*focus.scaleX; const ry=(photoRect.h/2)*focus.scaleY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); } else { const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#e5e7eb'); g.addColorStop(1,'#f3f4f6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h); }
+  if(photoUrl){ const img=await loadImage(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); drawBlur(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,26); const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focus.offsetY); const rx=(photoRect.w/2)*focus.scaleX; const ry=(photoRect.h/2)*focus.scaleY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); } else { const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#E5E7EB'); g.addColorStop(1,'#F3F4F6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h);} ctx.restore();
+  // Panneau logo + garage (au-dessus du flou)
+  const pad=24; const lx=photoRect.x+pad, ly=photoRect.y+pad; const panelH=68, panelW=Math.min(700, photoRect.w-2*pad);
+  ctx.save(); rr(ctx,lx-14,ly-10,panelW, panelH, 16); ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill();
+  try{ const logo=await loadImage(logoUrl||DEFAULT_LOGO); const maxH=44; const f=maxH/logo.naturalHeight; const lw=Math.round(logo.naturalWidth*f), lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, lx, ly, lw, lh); ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText(dealerName||$('dealer').value||'', lx+lw+14, ly+lh/2+2); }catch(e){ ctx.fillStyle='#fff'; ctx.fillRect(lx,ly,52,52); ctx.fillStyle=THEME.red; ctx.font='900 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('AD', lx+8, ly+40); }
   ctx.restore();
-  // Panneau logo + nom (au‑dessus du flou)
-  const pad=26; const panelX=photoRect.x+pad, panelY=photoRect.y+pad; const panelH=72; const panelW=Math.min(680, photoRect.w-2*pad);
-  ctx.save(); rr(ctx,panelX-14,panelY-10,panelW+28,panelH+20,16); ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill();
-let textX = panelX; let textY = panelY + panelH/2;
-if (logoUrl) {
-  try {
-    const logo = await loadImage(logoUrl);
-    const maxH = 48; const f = Math.min(1, maxH / logo.naturalHeight);
-    const lw = Math.round(logo.naturalWidth * f); const lh = Math.round(logo.naturalHeight * f);
-    ctx.drawImage(logo, panelX, panelY, lw, lh);
-    textX = panelX + lw + 16; textY = panelY + lh/2 + 2;
-  } catch(e) {
-    const s = 56; rr(ctx,panelX,panelY,s,s,10); ctx.fillStyle='#E30613'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='800 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('AD', panelX+s/2, panelY+s/2+1); textX = panelX + s + 14; textY = panelY + s/2 + 2;
-  }
-} else {
-  const s = 56; rr(ctx,panelX,panelY,s,s,10); ctx.fillStyle='#E30613'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='800 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('AD', panelX+s/2, panelY+s/2+1); textX = panelX + s + 14; textY = panelY + s/2 + 2;
-}
-ctx.fillStyle='#111827'; ctx.font='800 22px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(dealerName || $('dealer').value || '', textX, textY);
-ctx.restore();
-  // Prix (étoile)
-  const scx=photoRect.x+photoRect.w-140, scy=photoRect.y+photoRect.h-60; ctx.save(); star(ctx,scx,scy,110,58,14); ctx.fillStyle='#E30613'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font='900 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(price(vehicle.price), scx, scy+2); ctx.restore();
+  // Badge prix moderne (cercle)
+  const ptxt = price(vehicle.price); if(ptxt){ const cx = photoRect.x + photoRect.w - 140; const cy = photoRect.y + photoRect.h - 70; drawPriceBadge(ctx, cx, cy, ptxt); }
   // Statut
-  if(status!=='aucun') statusStamp(ctx,status,photoRect,'#E30613');
-  // Titre / version / features
-  const titleY=photoRect.y+photoRect.h+34; ctx.fillStyle='#111827'; ctx.font='900 66px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText((vehicle.make+' '+vehicle.model).toUpperCase(), M, titleY);
-  const vY=titleY+44; ctx.font='700 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText((vehicle.version||'').toUpperCase(), M, vY);
-  const fY=vY+42; ctx.font='800 30px system-ui,-apple-system,Segoe UI,Roboto'; wrap(ctx,(vehicle.features||'').toUpperCase(), M, fY, outW-2*M, 36, 2);
+  if(status!=='aucun') statusStamp(ctx,status,photoRect,THEME.red);
+  // Titre & sous-titres
+  const titleY=photoRect.y+photoRect.h+34; ctx.fillStyle=THEME.fg; ctx.font='900 60px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('make').value+' '+$('model').value).toUpperCase(), M, titleY);
+  const vY=titleY+42; ctx.font='700 32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('version').value||'').toUpperCase(), M, vY);
+  const fY=vY+40; ctx.font='800 28px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('features').value||'').toUpperCase(), M, fY);
   // Specs
-  const sY=fY+60; ctx.fillStyle='#4B5563'; ctx.font='700 30px system-ui,-apple-system,Segoe UI,Roboto'; const specs=[vehicle.year, vehicle.gearbox, vehicle.fuel, (vehicle.power||'')+' ch', kms(vehicle.mileage)].filter(Boolean).join('  •  '); ctx.fillText(specs, M, sY);
-  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, sY+24); ctx.lineTo(outW-M, sY+24); ctx.stroke();
-  // Téléphone — pilule BLEU AD, plus haut
-  const phoneY = outH - 170; const phoneTxt = $('phone').value||''; ctx.font='900 34px system-ui,-apple-system,Segoe UI,Roboto'; const tw=ctx.measureText(phoneTxt).width; const pw=tw+90, ph=58; const px=outW-M-pw, py=phoneY-ph/2; rr(ctx,px,py,pw,ph,28); ctx.fillStyle='#001E62'; ctx.fill(); ctx.fillStyle='#fff'; ctx.fillText(phoneTxt, px+56, phoneY+12-12); ctx.beginPath(); ctx.arc(px+30, py+ph/2, 10, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+  const sY=fY+56; ctx.fillStyle=THEME.sub; ctx.font='700 28px system-ui,-apple-system,Segoe UI,Roboto'; const specs=[$('year').value, $('gearbox').value, $('fuel').value, ($('power').value||'')+' ch', kms($('mileage').value)].filter(Boolean).join('  •  '); ctx.fillText(specs, M, sY);
+  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, sY+20); ctx.lineTo(outW-M, sY+20); ctx.stroke();
+  // Téléphone (pilule bleu AD) — plus haut
+  const phoneY = outH - 180; const phoneTxt = $('phone').value||''; ctx.font='900 32px system-ui,-apple-system,Segoe UI,Roboto'; const tw=ctx.measureText(phoneTxt).width; const pw=tw+90, ph=56; const px=outW-M-pw, py=phoneY-ph/2; rr(ctx,px,py,pw,ph,28); ctx.fillStyle=THEME.blue; ctx.fill(); ctx.fillStyle='#fff'; ctx.fillText(phoneTxt, px+56, phoneY+12-12); ctx.beginPath(); ctx.arc(px+30, py+ph/2, 8, 0, Math.PI*2); ctx.fill();
 }
 
-function wrap(ctx, text, x, y, maxW, lh, maxLines){ const wds=(text||'').split(/\s+/); let line=''; let lines=0; for(let i=0;i<wds.length;i++){ const test=line?line+' '+wds[i]:wds[i]; const w=ctx.measureText(test).width; if(w>maxW && i>0){ ctx.fillText(line,x,y); y+=lh; lines++; line=wds[i]; if(lines>=maxLines-1) break; } else line=test; } ctx.fillText(line,x,y); }
+/* ====== State + bindings ====== */
+const state={ preset:'portrait', status:'aucun', focusX:0.82, focusY:0.60, focusOff:0.00 };
+function schedule(){ if(window.__raf) cancelAnimationFrame(window.__raf); window.__raf=requestAnimationFrame(drawPreview); }
+async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
 
-// ====== State + bindings ======
-const state={ preset:'portrait', status:'aucun', focusX:0.82, focusY:0.60, focusOff:0.00, dealerName: $('dealer').value, vehicle: { make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value } };
-function set(path, val){ const parts=path.split('.'); let cur=state; for(let i=0;i<parts.length-1;i++) cur=cur[parts[i]]; cur[parts.at(-1)]=val; }
-
-function bind(){ const map=[ ['make','vehicle.make'], ['model','vehicle.model'], ['version','vehicle.version'], ['features','vehicle.features'], ['year','vehicle.year'], ['gearbox','vehicle.gearbox'], ['fuel','vehicle.fuel'], ['power','vehicle.power'], ['mileage','vehicle.mileage'], ['price','vehicle.price'], ['phone','vehicle.phone'], ['dealer','dealerName'] ]; map.forEach(([id,path])=>$(id).addEventListener('input',()=>{ set(path,$(id).value); schedule(); })); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); });
-  ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(ev)=>{ const v=parseFloat(ev.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); }));
-  $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); });
-  const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); };
-  $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto);
-  $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); await renderSheet(c, { preset:state.preset, vehicle:state.vehicle, dealerName:state.dealerName, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const ios=/iPad|iPhone|iPod/.test(navigator.userAgent); c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); if(ios) window.open(url,'_blank'); else { const a=document.createElement('a'); const fn=`${state.vehicle.make}-${state.vehicle.model}-${state.vehicle.year}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); });
-}
-
-let raf=null; function schedule(){ if(raf) cancelAnimationFrame(raf); raf=requestAnimationFrame(drawPreview); }
-async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { preset:state.preset, vehicle:state.vehicle, dealerName:state.dealerName, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
+function bind(){ ['make','model','version','features','year','gearbox','fuel','mileage','power','price','phone','dealer'].forEach(id=>$(id).addEventListener('input',schedule)); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); })); $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); }); const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); }; $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto); $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); const dims=PRESETS[state.preset]; c.width=dims.w; c.height=dims.h; await renderSheet(c, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); const ios=/iPad|iPhone|iPod/.test(navigator.userAgent); if(ios) window.open(url,'_blank'); else { const a=document.createElement('a'); const fn=`${$('make').value}-${$('model').value}-${$('year').value}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); }); }
 
 bind(); schedule();
 
-// Remplace le token par le vrai data URL du logo AD Expert
+// === Inject real dataURL for default logo ===
+(function(){ const DURL = 'data:image/png;base64,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'; if(DEFAULT_LOGO==='REPLACE_WITH_DATAURL'){ const src = DURL; if(src && src.startsWith('data:image')){ logoURL = src; } } })();
 </script>
 </body>
 </html>
