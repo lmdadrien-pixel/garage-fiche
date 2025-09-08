@@ -7,26 +7,22 @@
   <style>
     :root{ --bg:#ffffff; --fg:#0f172a; --sub:#475569; --muted:#e2e8f0; --ad-red:#E30613; --ad-blue:#001E62; }
     *{box-sizing:border-box}
-    body{margin:0;font:16px/1.45 ui-sans-serif, -apple-system, Segoe UI, Roboto, system-ui; color:var(--fg); background:var(--bg)}
+    body{margin:0;font:16px/1.45 ui-sans-serif,-apple-system,Segoe UI,Roboto,system-ui;color:var(--fg);background:var(--bg)}
     .wrap{max-width:1200px;margin:0 auto;padding:24px;display:grid;grid-template-columns:420px 1fr;gap:24px}
     @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
     h1{margin:0 0 12px;font-size:24px}
     section{border:1px solid var(--muted);border-radius:16px;padding:16px;background:#fff}
     label.txt{display:block;font-size:13px;margin-bottom:8px;color:var(--sub)}
-    input[type="text"], select{width:100%;padding:10px 12px;border:1px solid var(--muted);border-radius:12px}
+    input[type="text"],select{width:100%;padding:10px 12px;border:1px solid var(--muted);border-radius:12px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
     .btn{border:1px solid var(--muted);border-radius:16px;padding:10px 14px;background:#fff;cursor:pointer}
-    .uploader{display:inline-block}
-    .uploader input{display:none}
+    .uploader{display:inline-block}.uploader input{display:none}
     .small{color:var(--sub);font-size:12px}
     canvas{background:#fff;border:1px solid var(--muted);border-radius:12px;max-width:100%}
     /* Barre mobile fixée sous l’aperçu */
     #controls{position:relative}
-    @media(max-width:820px){
-      #controls{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--muted);padding:10px 12px}
-      body{padding-bottom:170px}
-    }
+    @media(max-width:820px){#controls{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--muted);padding:10px 12px}body{padding-bottom:170px}}
   </style>
 </head>
 <body>
@@ -35,7 +31,7 @@
       <h1>Fiche véhicule Instagram</h1>
 
       <section>
-        <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
           <label class="uploader btn">Prendre une photo (iPhone)
             <input id="photoCam" type="file" accept="image/*" capture="environment" />
           </label>
@@ -46,7 +42,7 @@
             <input id="logoFile" type="file" accept="image/*,.svg" />
           </label>
         </div>
-        <div class="small" style="margin-top:6px">Logo par défaut : <b>AD Expert</b> intégré (tu peux le remplacer).</div>
+        <div class="small" style="margin-top:6px">Logo par défaut : badge <b>AD</b> intégré (tu peux charger <b>AD Expert</b> avec le bouton).</div>
       </section>
 
       <section>
@@ -68,14 +64,8 @@
       <section>
         <div><label class="txt">Nom garage</label><input id="dealer" type="text" value="GARAGE LAUMOND – Lanteuil • Meyssac • Argentat" /></div>
         <div class="row3" style="margin-top:12px">
-          <div>
-            <label class="txt">Statut</label>
-            <select id="status"><option value="aucun">aucun</option><option value="RÉSERVÉ">RÉSERVÉ</option><option value="VENDU">VENDU</option></select>
-          </div>
-          <div>
-            <label class="txt">Format</label>
-            <select id="preset"><option value="portrait">Portrait 1080×1350</option><option value="square">Carré 1080×1080</option><option value="story">Story 1080×1920</option></select>
-          </div>
+          <div><label class="txt">Statut</label><select id="status"><option value="aucun">aucun</option><option value="RÉSERVÉ">RÉSERVÉ</option><option value="VENDU">VENDU</option></select></div>
+          <div><label class="txt">Format</label><select id="preset"><option value="portrait">Portrait 1080×1350</option><option value="square">Carré 1080×1080</option><option value="story">Story 1080×1920</option></select></div>
         </div>
       </section>
     </div>
@@ -83,7 +73,7 @@
     <div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div class="small" id="previewLabel">Prévisualisation</div>
-        <div class="actions" style="display:flex;gap:8px"><button id="btnGen" class="btn">Télécharger PNG</button></div>
+        <div style="display:flex;gap:8px"><button id="btnGen" class="btn">Télécharger PNG</button></div>
       </div>
       <canvas id="preview"></canvas>
       <canvas id="export" style="display:none"></canvas>
@@ -94,20 +84,18 @@
           <div><label class="txt">Focus hauteur</label><input id="focusY" type="range" min="0.45" max="1.1" step="0.01" value="0.60" /></div>
           <div><label class="txt">Position verticale</label><input id="focusOff" type="range" min="-0.25" max="0.25" step="0.005" value="0.00" /></div>
         </div>
-        <div class="small" style="margin-top:6px">Sur iPhone, cette barre reste en bas. L’aperçu au-dessus se met à jour <b>en direct</b>.</div>
+        <div class="small" style="margin-top:6px">iPhone : la barre reste en bas, l’aperçu se met à jour <b>en direct</b> lorsque tu glisses.</div>
       </section>
     </div>
   </div>
 
 <script>
-/* ====== Logo AD Expert intégré (fallback) ====== */
-const DEFAULT_LOGO = "REPLACE_WITH_DATAURL"; // remplacé plus bas
-
 /* ====== Consts & helpers ====== */
+const DEFAULT_LOGO = ""; // <- vide par défaut: on dessine un badge AD propre. Charge ton logo AD Expert pour le voir.
 const PRESETS = { square:{w:1080,h:1080,label:"Carré 1080×1080"}, portrait:{w:1080,h:1350,label:"Portrait 1080×1350"}, story:{w:1080,h:1920,label:"Story 1080×1920"} };
 const $ = (id)=>document.getElementById(id);
 const fr = new Intl.NumberFormat('fr-FR');
-let logoURL = DEFAULT_LOGO; let photoURL = null;
+let logoURL = DEFAULT_LOGO, photoURL = null;
 
 const THEME = { red:'#E30613', blue:'#001E62', fg:'#0f172a', sub:'#475569' };
 
@@ -117,67 +105,79 @@ function fitCover(sw,sh,dw,dh){ const sr=sw/sh, dr=dw/dh; if(sr>dr){ const sH=sh
 function rr(ctx,x,y,w,h,r){ const t=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+t,y); ctx.arcTo(x+w,y,x+w,y+h,t); ctx.arcTo(x+w,y+h,x,y+h,t); ctx.arcTo(x,y+h,x,y,t); ctx.arcTo(x,y,x+w,y,t); ctx.closePath(); }
 function loadImage(url){ return new Promise((res,rej)=>{ const img=new Image(); img.crossOrigin='anonymous'; img.onload=()=>res(img); img.onerror=rej; img.src=url; }); }
 
-// Flou compatible iPhone: filtre si dispo, sinon downscale/upscale
-function drawBlur(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,px=24){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${px}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return; } const tmp=document.createElement('canvas'); const t=tmp.getContext('2d'); const sc=Math.max(6, Math.floor(Math.min(dW,dH)/18)); const tw=Math.max(1, Math.floor(dW/sc)), th=Math.max(1, Math.floor(dH/sc)); tmp.width=tw; tmp.height=th; t.imageSmoothingEnabled=true; t.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); }
+// Blur fallback (iPhone safe)
+function drawBlur(ctx,img,sx,sy,sW,sH,dx,dy,dW,dH,px=26){ const any=ctx; if(typeof any.filter==='string'){ const prev=any.filter; any.filter=`blur(${px}px)`; ctx.drawImage(img,sx,sy,sW,sH,dx,dy,dW,dH); any.filter=prev; return; } const tmp=document.createElement('canvas'); const t=tmp.getContext('2d'); const sc=Math.max(6, Math.floor(Math.min(dW,dH)/18)); const tw=Math.max(1, Math.floor(dW/sc)), th=Math.max(1, Math.floor(dH/sc)); tmp.width=tw; tmp.height=th; t.imageSmoothingEnabled=true; t.drawImage(img,sx,sy,sW,sH,0,0,tw,th); ctx.imageSmoothingEnabled=true; ctx.drawImage(tmp,0,0,tw,th,dx,dy,dW,dH); }
 
 function statusStamp(ctx,txt,rect,color){ ctx.save(); ctx.translate(rect.x+rect.w/2,rect.y+rect.h/2); ctx.rotate(-Math.PI/14); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='900 120px system-ui,-apple-system,Segoe UI,Roboto'; ctx.lineWidth=10; ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineJoin='round'; ctx.miterLimit=2; ctx.strokeText(txt,0,0); ctx.fillStyle=color; ctx.fillText(txt,0,0); ctx.restore(); }
 
-function drawPriceBadge(ctx, cx, cy, text){ const R=110; // cercle moderne
+// Badge prix moderne: superellipse + gradient + lueur
+function drawPriceBadge(ctx, x, y, w, h, text){
+  const k = 0.55; // superellipse-ish via Bezier
+  const r = Math.min(w,h) * 0.24;
+  const cx = x + w/2, cy = y + h/2;
   ctx.save();
-  // ombre douce
-  ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=16; ctx.shadowOffsetY=6;
-  // badge
-  const g=ctx.createRadialGradient(cx-20,cy-20,20,cx,cy,R);
-  g.addColorStop(0,'#ff4d5a'); g.addColorStop(1,'#b70014');
-  ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
-  // anneau blanc
-  ctx.lineWidth=6; ctx.strokeStyle='#fff'; ctx.stroke();
-  // reflet
-  ctx.beginPath(); ctx.arc(cx-28, cy-36, 38, Math.PI*0.15, Math.PI*1.1);
-  ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=8; ctx.stroke();
-  // texte
-  ctx.shadowColor='transparent'; ctx.fillStyle='#fff'; ctx.font='900 42px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text, cx, cy+2);
-  ctx.restore(); }
+  ctx.translate(cx, cy); ctx.rotate(-0.1);
+  ctx.beginPath();
+  const rx=w/2, ry=h/2;
+  ctx.moveTo(-rx, 0);
+  ctx.bezierCurveTo(-rx, -ry*k, -rx*k, -ry, 0, -ry);
+  ctx.bezierCurveTo(rx*k, -ry, rx, -ry*k, rx, 0);
+  ctx.bezierCurveTo(rx, ry*k, rx*k, ry, 0, ry);
+  ctx.bezierCurveTo(-rx*k, ry, -rx, ry*k, -rx, 0);
+  const g=ctx.createLinearGradient(-rx,-ry,rx,ry); g.addColorStop(0,'#ff5d6a'); g.addColorStop(1,'#b70014');
+  ctx.fillStyle=g; ctx.shadowColor='rgba(0,0,0,0.25)'; ctx.shadowBlur=18; ctx.shadowOffsetY=8; ctx.fill();
+  ctx.lineWidth=6; ctx.strokeStyle='rgba(255,255,255,0.95)'; ctx.stroke();
+  // highlight
+  ctx.beginPath(); ctx.ellipse(-rx*0.25, -ry*0.45, rx*0.35, ry*0.22, -0.2, 0, Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fill();
+  // text
+  ctx.shadowColor='transparent'; ctx.fillStyle='#fff'; ctx.font='900 44px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text, 0, 6);
+  ctx.restore();
+}
 
 /* ====== Render ====== */
 async function renderSheet(canvas, data){ const {preset,vehicle,dealerName,logoUrl,photoUrl,focus,status} = data; const outW=PRESETS[preset].w, outH=PRESETS[preset].h; const ctx=canvas.getContext('2d'); canvas.width=outW; canvas.height=outH; ctx.clearRect(0,0,outW,outH); ctx.fillStyle='#fff'; ctx.fillRect(0,0,outW,outH);
-  // Bordure bleue
+  // Bordure fine bleue
   const B=8; ctx.strokeStyle=THEME.blue; ctx.lineWidth=B; ctx.strokeRect(B/2+16, B/2+16, outW-B-32, outH-B-32);
-  // Bloc photo arrondi
-  const M=56; const photoH=Math.round(outH*0.58); const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
-  ctx.save(); rr(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,44); ctx.clip();
+  // Zone photo
+  const M=52; const photoH=Math.round(outH*0.56); const photoRect={x:M,y:M,w:outW-2*M,h:photoH};
+  ctx.save(); rr(ctx,photoRect.x,photoRect.y,photoRect.w,photoRect.h,28); ctx.clip();
   if(photoUrl){ const img=await loadImage(photoUrl); const {sx,sy,sW,sH}=fitCover(img.naturalWidth,img.naturalHeight,photoRect.w,photoRect.h); drawBlur(ctx,img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h,26); const cx=photoRect.x+photoRect.w/2; const cy=photoRect.y+photoRect.h*(0.5+focus.offsetY); const rx=(photoRect.w/2)*focus.scaleX; const ry=(photoRect.h/2)*focus.scaleY; ctx.save(); ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.clip(); ctx.drawImage(img,sx,sy,sW,sH,photoRect.x,photoRect.y,photoRect.w,photoRect.h); ctx.restore(); } else { const g=ctx.createLinearGradient(0,photoRect.y,0,photoRect.y+photoRect.h); g.addColorStop(0,'#E5E7EB'); g.addColorStop(1,'#F3F4F6'); ctx.fillStyle=g; ctx.fillRect(photoRect.x,photoRect.y,photoRect.w,photoRect.h);} ctx.restore();
   // Panneau logo + garage (au-dessus du flou)
-  const pad=24; const lx=photoRect.x+pad, ly=photoRect.y+pad; const panelH=68, panelW=Math.min(700, photoRect.w-2*pad);
+  const pad=22; const lx=photoRect.x+pad, ly=photoRect.y+pad; const panelH=64, panelW=Math.min(720, photoRect.w-2*pad);
   ctx.save(); rr(ctx,lx-14,ly-10,panelW, panelH, 16); ctx.fillStyle='rgba(255,255,255,0.96)'; ctx.fill();
-  try{ const logo=await loadImage(logoUrl||DEFAULT_LOGO); const maxH=44; const f=maxH/logo.naturalHeight; const lw=Math.round(logo.naturalWidth*f), lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, lx, ly, lw, lh); ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText(dealerName||$('dealer').value||'', lx+lw+14, ly+lh/2+2); }catch(e){ ctx.fillStyle='#fff'; ctx.fillRect(lx,ly,52,52); ctx.fillStyle=THEME.red; ctx.font='900 34px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText('AD', lx+8, ly+40); }
+  if(logoUrl){ try{ const logo=await loadImage(logoUrl); const maxH=44; const f=maxH/logo.naturalHeight; const lw=Math.round(logo.naturalWidth*f), lh=Math.round(logo.naturalHeight*f); ctx.drawImage(logo, lx, ly, lw, lh); ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText(dealerName||$('dealer').value||'', lx+lw+14, ly+lh/2+2); }catch(e){ drawADFallback(ctx,lx,ly); ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText(dealerName||$('dealer').value||'', lx+72+14, ly+36); } }
+  else { drawADFallback(ctx,lx,ly); ctx.fillStyle=THEME.fg; ctx.font='800 20px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='middle'; ctx.fillText(dealerName||$('dealer').value||'', lx+72+14, ly+36); }
   ctx.restore();
-  // Badge prix moderne (cercle)
-  const ptxt = price(vehicle.price); if(ptxt){ const cx = photoRect.x + photoRect.w - 140; const cy = photoRect.y + photoRect.h - 70; drawPriceBadge(ctx, cx, cy, ptxt); }
+  // Badge prix moderne (superellipse)
+  const p = price(vehicle.price); if(p){ const bw=320, bh=120; const bx = photoRect.x + photoRect.w - bw - 18; const by = photoRect.y + photoRect.h - bh - 18; drawPriceBadge(ctx, bx, by, bw, bh, p); }
   // Statut
   if(status!=='aucun') statusStamp(ctx,status,photoRect,THEME.red);
   // Titre & sous-titres
   const titleY=photoRect.y+photoRect.h+34; ctx.fillStyle=THEME.fg; ctx.font='900 60px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('make').value+' '+$('model').value).toUpperCase(), M, titleY);
-  const vY=titleY+42; ctx.font='700 32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('version').value||'').toUpperCase(), M, vY);
-  const fY=vY+40; ctx.font='800 28px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('features').value||'').toUpperCase(), M, fY);
+  const vY=titleY+40; ctx.font='700 32px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('version').value||'').toUpperCase(), M, vY);
+  const fY=vY+38; ctx.font='800 28px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillText(($('features').value||'').toUpperCase(), M, fY);
   // Specs
-  const sY=fY+56; ctx.fillStyle=THEME.sub; ctx.font='700 28px system-ui,-apple-system,Segoe UI,Roboto'; const specs=[$('year').value, $('gearbox').value, $('fuel').value, ($('power').value||'')+' ch', kms($('mileage').value)].filter(Boolean).join('  •  '); ctx.fillText(specs, M, sY);
-  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, sY+20); ctx.lineTo(outW-M, sY+20); ctx.stroke();
+  const sY=fY+54; ctx.fillStyle=THEME.sub; ctx.font='700 28px system-ui,-apple-system,Segoe UI,Roboto'; const specs=[$('year').value, $('gearbox').value, $('fuel').value, ($('power').value||'')+' ch', kms($('mileage').value)].filter(Boolean).join('  •  '); ctx.fillText(specs, M, sY);
+  ctx.strokeStyle='#E5E7EB'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(M, sY+18); ctx.lineTo(outW-M, sY+18); ctx.stroke();
   // Téléphone (pilule bleu AD) — plus haut
-  const phoneY = outH - 180; const phoneTxt = $('phone').value||''; ctx.font='900 32px system-ui,-apple-system,Segoe UI,Roboto'; const tw=ctx.measureText(phoneTxt).width; const pw=tw+90, ph=56; const px=outW-M-pw, py=phoneY-ph/2; rr(ctx,px,py,pw,ph,28); ctx.fillStyle=THEME.blue; ctx.fill(); ctx.fillStyle='#fff'; ctx.fillText(phoneTxt, px+56, phoneY+12-12); ctx.beginPath(); ctx.arc(px+30, py+ph/2, 8, 0, Math.PI*2); ctx.fill();
+  const phoneY = outH - 220; const phoneTxt = $('phone').value||''; ctx.font='900 32px system-ui,-apple-system,Segoe UI,Roboto'; const tw=ctx.measureText(phoneTxt).width; const pw=tw+90, ph=56; const px=outW-M-pw, py=phoneY-ph/2; rr(ctx,px,py,pw,ph,28); ctx.fillStyle=THEME.blue; ctx.fill(); ctx.fillStyle='#fff'; ctx.fillText(phoneTxt, px+56, phoneY+12-12); ctx.beginPath(); ctx.arc(px+30, py+ph/2, 8, 0, Math.PI*2); ctx.fill();
+  // Bandeau bas
+  const bandH = 72; const msg = 'Possibilité de reprise de votre véhicule   •   Recherche personnalisée : on trouve le modèle exact que vous cherchez'; ctx.fillStyle=THEME.blue; ctx.fillRect(0, outH-bandH, outW, bandH); ctx.fillStyle='#fff'; ctx.font='800 26px system-ui,-apple-system,Segoe UI,Roboto'; const mw=ctx.measureText(msg).width; ctx.fillText(msg, (outW-mw)/2, outH-bandH/2+10);
 }
+
+function drawADFallback(ctx,x,y){ const s=56; // petit badge "AD" propre si aucun logo
+  ctx.save(); rr(ctx,x-6,y-6,s+12,s+12,12); ctx.fillStyle='#fff'; ctx.globalAlpha=0.95; ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle=THEME.red; ctx.font='900 40px system-ui,-apple-system,Segoe UI,Roboto'; ctx.textBaseline='top'; ctx.fillText('AD', x+6, y+2); ctx.restore(); }
 
 /* ====== State + bindings ====== */
 const state={ preset:'portrait', status:'aucun', focusX:0.82, focusY:0.60, focusOff:0.00 };
 function schedule(){ if(window.__raf) cancelAnimationFrame(window.__raf); window.__raf=requestAnimationFrame(drawPreview); }
 async function drawPreview(){ const c=$('preview'); const dims=PRESETS[state.preset]; $('previewLabel').textContent='Prévisualisation ('+dims.label+')'; const ratio=0.38; c.width=Math.round(dims.w*ratio); c.height=Math.round(dims.h*ratio); const off=document.createElement('canvas'); off.width=dims.w; off.height=dims.h; await renderSheet(off, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const ctx=c.getContext('2d'); ctx.drawImage(off,0,0,c.width,c.height); }
-
-function bind(){ ['make','model','version','features','year','gearbox','fuel','mileage','power','price','phone','dealer'].forEach(id=>$(id).addEventListener('input',schedule)); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); })); $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); }); const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); }; $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto); $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); const dims=PRESETS[state.preset]; c.width=dims.w; c.height=dims.h; await renderSheet(c, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); const ios=/iPad|iPhone|iPod/.test(navigator.userAgent); if(ios) window.open(url,'_blank'); else { const a=document.createElement('a'); const fn=`${$('make').value}-${$('model').value}-${$('year').value}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); } setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); }); }
+function bind(){ ['make','model','version','features','year','gearbox','fuel','mileage','power','price','phone','dealer'].forEach(id=>$(id).addEventListener('input',schedule)); $('preset').addEventListener('change',()=>{ state.preset=$('preset').value; schedule(); }); $('status').addEventListener('change',()=>{ state.status=$('status').value; schedule(); }); ['focusX','focusY','focusOff'].forEach(id=>$(id).addEventListener('input',(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) state[id]=v; schedule(); })); $('logoFile').addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(logoURL) URL.revokeObjectURL(logoURL); logoURL=URL.createObjectURL(f); schedule(); }); const pickPhoto=e=>{ const f=e.target.files&&e.target.files[0]; if(!f||!f.type.startsWith('image/')) return; if(photoURL) URL.revokeObjectURL(photoURL); photoURL=URL.createObjectURL(f); schedule(); }; $('photoFile').addEventListener('change', pickPhoto); $('photoCam').addEventListener('change', pickPhoto); $('btnGen').addEventListener('click', async ()=>{ const c=$('export'); const dims=PRESETS[state.preset]; c.width=dims.w; c.height=dims.h; await renderSheet(c, { preset:state.preset, vehicle:{ make:$('make').value, model:$('model').value, version:$('version').value, features:$('features').value, year:$('year').value, gearbox:$('gearbox').value, fuel:$('fuel').value, mileage:$('mileage').value, power:$('power').value, price:$('price').value, phone:$('phone').value }, dealerName:$('dealer').value, logoUrl:logoURL, photoUrl:photoURL, focus:{scaleX:state.focusX,scaleY:state.focusY,offsetY:state.focusOff}, status:state.status }); const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent); if(isIOS){ const data=c.toDataURL('image/png'); // iOS: dataURL garanti
+ window.open(data,'_blank'); }
+ else { c.toBlob(b=>{ if(!b) return; const url=URL.createObjectURL(b); const a=document.createElement('a'); const fn=`${$('make').value}-${$('model').value}-${$('year').value}-${state.preset}`.replace(/[^a-z0-9-_]+/gi,'-'); a.href=url; a.download=fn+'.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1200); },'image/png'); } }); }
 
 bind(); schedule();
-
-// === Inject real dataURL for default logo ===
-(function(){ const DURL = 'data:image/png;base64,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'; if(DEFAULT_LOGO==='REPLACE_WITH_DATAURL'){ const src = DURL; if(src && src.startsWith('data:image')){ logoURL = src; } } })();
 </script>
 </body>
 </html>
